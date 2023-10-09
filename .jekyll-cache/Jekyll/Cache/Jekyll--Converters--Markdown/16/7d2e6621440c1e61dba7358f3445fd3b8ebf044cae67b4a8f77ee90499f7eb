@@ -1,0 +1,100 @@
+I"�4<p><strong>This article is for Demo purpose</strong></p>
+
+<p>The article was originally on <a href="https://github.com/risan/risanb.com/blob/master/content/posts/react-component-with-dot-notation/index.md">this repo</a></p>
+
+<p>This is my answer to someone’s question on <a href="https://stackoverflow.com/questions/49256472/react-how-to-extend-a-component-that-has-child-components-and-keep-them/49258038#answer-49258038">StackOverflow</a>. How can we define a React component that is accessible through the dot notation?</p>
+
+<p>Take a look at the following code. We have the <code class="language-plaintext highlighter-rouge">Menu</code> component and its three children <code class="language-plaintext highlighter-rouge">Menu.Item</code>:</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">App</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">(</span>
+  <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>Home<span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>Blog<span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>About<span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">&gt;</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>How can we define a component like <code class="language-plaintext highlighter-rouge">Menu</code>? Where it has some kind of “sub-component” that is accessible through a dot notation.</p>
+
+<p>Well, it’s actually a pretty common pattern. And it’s not really a sub-component, it’s just another component being attached to another one.</p>
+
+<p>Let’s use the above <code class="language-plaintext highlighter-rouge">Menu</code> component for example. We’ll put this component to its own dedicated file: <code class="language-plaintext highlighter-rouge">menu.js</code>. First, let’s define these two components separately on this module file:</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// menu.js</span>
+<span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="kd">const</span> <span class="nx">MenuItem</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">children</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span><span class="si">{</span><span class="nx">children</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;;</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">const</span> <span class="nx">Menu</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">children</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span><span class="si">{</span><span class="nx">children</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;;</span>
+</code></pre></div></div>
+
+<p>It’s just a simple functional component. The <code class="language-plaintext highlighter-rouge">Menu</code> is the parent with <code class="language-plaintext highlighter-rouge">ul</code> tag. And the <code class="language-plaintext highlighter-rouge">MenuItem</code> will act as its children. Now we can use these two components like so:</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">render</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react-dom</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">Menu</span><span class="p">,</span> <span class="p">{</span> <span class="nx">MenuItem</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">./menu</span><span class="dl">"</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">App</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">(</span>
+  <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">MenuItem</span><span class="p">&gt;</span>Home<span class="p">&lt;/</span><span class="nc">MenuItem</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">MenuItem</span><span class="p">&gt;</span>Blog<span class="p">&lt;/</span><span class="nc">MenuItem</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">MenuItem</span><span class="p">&gt;</span>About<span class="p">&lt;/</span><span class="nc">MenuItem</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">&gt;</span>
+<span class="p">);</span>
+
+<span class="nx">render</span><span class="p">(&lt;</span><span class="nc">App</span> <span class="p">/&gt;,</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="dl">"</span><span class="s2">root</span><span class="dl">"</span><span class="p">));</span>
+</code></pre></div></div>
+
+<p>Where’s the dot notation? To make our <code class="language-plaintext highlighter-rouge">MenuItem</code> component accessible through the dot nation, we can simply attach it to the <code class="language-plaintext highlighter-rouge">Menu</code> component as a static property. To do so, we can no longer use the functional component for <code class="language-plaintext highlighter-rouge">Menu</code> and switch to the class component instead:</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// menu.js</span>
+<span class="k">import</span> <span class="nx">React</span><span class="p">,</span> <span class="p">{</span> <span class="nx">Component</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">'</span><span class="s1">react</span><span class="dl">'</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">const</span> <span class="nx">MenuItem</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">children</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span><span class="si">{</span><span class="nx">children</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;;</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">class</span> <span class="nx">Menu</span> <span class="kd">extends</span> <span class="nx">Component</span> <span class="p">{</span>
+  <span class="kd">static</span> <span class="nx">Item</span> <span class="o">=</span> <span class="nx">MenuItem</span><span class="p">;</span>
+
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">(</span>
+      <span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span><span class="si">{</span><span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">children</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;</span>
+    <span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now we can use the dot notation to declare the <code class="language-plaintext highlighter-rouge">MenuItem</code> component:</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">render</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react-dom</span><span class="dl">"</span><span class="p">;</span>
+<span class="k">import</span> <span class="nx">Menu</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">./menu</span><span class="dl">"</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">App</span> <span class="o">=</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">(</span>
+  <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>Home<span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>Blog<span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>About<span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">.</span><span class="nc">Item</span><span class="p">&gt;</span>
+  <span class="p">&lt;/</span><span class="nc">Menu</span><span class="p">&gt;</span>
+<span class="p">);</span>
+
+<span class="nx">render</span><span class="p">(&lt;</span><span class="nc">App</span> <span class="p">/&gt;,</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="dl">"</span><span class="s2">root</span><span class="dl">"</span><span class="p">));</span>
+</code></pre></div></div>
+
+<p>You can also put the <code class="language-plaintext highlighter-rouge">MenuItem</code> component definition directly within the <code class="language-plaintext highlighter-rouge">Menu</code> class. But this way you can no longer import <code class="language-plaintext highlighter-rouge">MenuItem</code> individually.</p>
+
+<div class="language-jsx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nx">React</span><span class="p">,</span> <span class="p">{</span> <span class="nx">Component</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">react</span><span class="dl">"</span><span class="p">;</span>
+
+<span class="k">export</span> <span class="k">default</span> <span class="kd">class</span> <span class="nx">Menu</span> <span class="kd">extends</span> <span class="nx">Component</span> <span class="p">{</span>
+  <span class="kd">static</span> <span class="nx">Item</span> <span class="o">=</span> <span class="p">({</span> <span class="nx">children</span> <span class="p">})</span> <span class="o">=&gt;</span> <span class="p">&lt;</span><span class="nt">li</span><span class="p">&gt;</span><span class="si">{</span><span class="nx">children</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">li</span><span class="p">&gt;;</span>
+
+  <span class="nx">render</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="p">&lt;</span><span class="nt">ul</span><span class="p">&gt;</span><span class="si">{</span><span class="k">this</span><span class="p">.</span><span class="nx">props</span><span class="p">.</span><span class="nx">children</span><span class="si">}</span><span class="p">&lt;/</span><span class="nt">ul</span><span class="p">&gt;;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>This article is for Demo purpose</strong></p>
+
+<p>The article was originally on <a href="https://github.com/risan/risanb.com/blob/master/content/posts/react-component-with-dot-notation/index.md">this repo</a></p>
+:ET

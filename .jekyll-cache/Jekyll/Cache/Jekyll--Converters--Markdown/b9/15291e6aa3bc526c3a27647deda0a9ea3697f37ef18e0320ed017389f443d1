@@ -1,0 +1,20 @@
+I"Â<p>Below is an example of maths using mathjax.</p>
+
+<p>Any page needing maths should start with the frontmatter:</p>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown">usemathjax: true</code></pre></figure>
+
+\[\begin{align*}
+y = y(x,t) &amp;= A e^{i\theta} \\
+&amp;= A (\cos \theta + i \sin \theta) \\
+&amp;= A (\cos(kx - \omega t) + i \sin(kx - \omega t)) \\
+&amp;= A\cos(kx - \omega t) + i A\sin(kx - \omega t)  \\
+&amp;= A\cos \Big(\frac{2\pi}{\lambda}x - \frac{2\pi v}{\lambda} t \Big) + i A\sin \Big(\frac{2\pi}{\lambda}x - \frac{2\pi v}{\lambda} t \Big)  \\
+&amp;= A\cos \frac{2\pi}{\lambda} (x - v t) + i A\sin \frac{2\pi}{\lambda} (x - v t)
+\end{align*}\]
+
+<p>Inline maths can be written with the <code class="language-plaintext highlighter-rouge">\\(</code> and <code class="language-plaintext highlighter-rouge">\\)</code> characters, producing inline maths
+such as \(\delta(t) \xrightarrow{\mathscr{F}} 1\).</p>
+
+<p>The above is accomplished with thanks to <a href="https://alanduan.me/random/mathjax/">Alan Duan</a> and <a href="https://webdocs.cs.ualberta.ca/~zichen2/blog/coding/setup/2019/02/17/how-to-add-mathjax-support-to-jekyll.html.">Zichen Vincent Zhang</a>.</p>
+:ET
