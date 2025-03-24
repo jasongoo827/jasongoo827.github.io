@@ -8,12 +8,17 @@ description: Vulkan 기반으로 직접 개발한 3D 게임 엔진 ALEngine을 �
 
 블로그의 가장 첫 포스트로 내가 만든 게임엔진을 소개하려고 한다. 프로그래밍을 시작한 이후로 가장 정성을 들여 만든 프로그램이기에, 포스트도 내가 구현한 기능별로 상세하게 기록할 예정이다. 다 만들고 나서 아쉬운 점도 많았지만, 그래도 게임 엔진에 관해 많이 알게 되어 얻어가는 점도 많았다고 생각한다. 이제 AfterLife Engine에 대한 소개를 하겠다. 
 
+---
+
 ## AfterLife Engine (2024/10 ~ 2025/03)
 ALEngine 프로젝트는 Vulkan API를 활용해 개발한 게임 엔진이다. 42Seoul의 VeryRealEngine 프로젝트를 수행하기 위해 개발됐다. ALEngine은 최신 그래픽 기술을 활용한 3D 렌더링, 물리 시뮬레이션, 애니메이션 시스템, 스크립팅을 포함하고 있으며, 직관적인 에디터(Editor) 를 통해 쉽게 조작할 수 있다. 다음은 엔진의 데모 영상이다.
 
 - [Renderer](https://www.youtube.com/watch?v=cwIg2w3mOJ0)
 - [Physics](https://www.youtube.com/watch?v=oJnp3A-QEsE)
 - [Animation](https://youtu.be/M6dmDZbce60)
+
+![Editor Preview](https://github.com/Very-Real-Engine/ALEngine/blob/main/docs/images/Editor.png?raw=true)
+
 
 ---
 ## 프로젝트에서 나의 역할
