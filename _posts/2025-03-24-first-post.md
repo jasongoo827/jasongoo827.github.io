@@ -2,7 +2,7 @@
 title: AfterLife Engine
 tags: [Game Engine, Graphics]
 style: fill
-color: "#ffcc00"
+color: primary
 description: Vulkan 기반으로 직접 개발한 3D 게임 엔진 ALEngine을 소개합니다.
 ---
 
