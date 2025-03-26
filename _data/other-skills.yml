@@ -1,7 +1,7 @@
-- name: Adobe Photoshop
-  percentage: 95
+- name: Github
+  percentage: 85
   color: info
 
-- name: Adobe Illustrator
-  percentage: 90
+- name: Notion
+  percentage: 70
   color: success
