@@ -14,22 +14,22 @@ description: ALEngine Architecture 에 대한 소개글.
 위 이미지는 게임 엔진에 일반적으로 들어가는 모듈들이 어떤 구성요소로 이루어져 있는지 간단하게 명시해놓았다. 핵심적인 요소들만 골라서 설명하겠다.
 
 
-### Rendering Engine
+#### Rendering Engine
 **렌더링 엔진**은 게임 세계를 시각적으로 표현하는 핵심 모듈이다. 2D/3D 오브젝트를 카메라 관점에서 계산하여 화면에 출력하며, 다양한 시각 효과와 최적화 기술을 포함한다.
 
-### Physics Engine
+#### Physics Engine
 **물리 엔진(Physics Engine)** 은 게임 내 오브젝트들이 현실적인 움직임과 상호작용을 하도록 시뮬레이션하는 시스템이다. 중력, 충돌, 마찰, 반사 등 실제 물리 법칙을 기반으로 한 동작을 처리하여 몰입감을 높인다.
 
-### Animation
+#### Animation
 **Animation**은 게임 속 캐릭터나 오브젝트의 움직임을 시간에 따라 부드럽게 표현하는 시스템이다. 스켈레탈 애니메이션, 키프레임, 블렌딩 등을 통해 생동감 있는 동작을 구현한다.
 
-### Scene Optimizations
+#### Scene Optimizations
 Scene graph, Culling, LOD를 통해 렌더링을 최적화해 CPU, GPU 리소스를 줄인다. 
 
-### Profiling & Debugging
+#### Profiling & Debugging
 엔진 성능을 높이고 개발을 원활하게 할 수 있게 만드는 도구. 메모리 누수, CPU 소모량, fps 등 다양한 수치를 검사할 수 있게 도와준다. 
 
-### Gameplay Foundation
+#### Gameplay Foundation
 **Gameplay Foundation**은 게임의 규칙, 상호작용, 캐릭터 동작, 상태 전이 등 실제 플레이를 구성하는 핵심 로직과 시스템을 의미한다. Scripting, Event System등을 활용해 엔진의 low level까지 알 필요없이 게임을 개발할 수 있다.
 
 
@@ -38,7 +38,7 @@ Scene graph, Culling, LOD를 통해 렌더링을 최적화해 CPU, GPU 리소스
 ## ALEngine Architecture
 VeryRealEngine 과제의 요구사항은 다음과 같다.
 
-### **Engine Basics**
+#### **Engine Basics**
 
 - **Scene Loading**: 파일(예: JSON 형식)을 통해 오브젝트 위치 및 정보를 로드.
 - **3D Rendering**: .OBJ 파일을 불러와 텍스처 및 비텍스처 모델 렌더링.
@@ -47,7 +47,7 @@ VeryRealEngine 과제의 요구사항은 다음과 같다.
 - **Optimization**: **Frustum Culling**, **Occlusion Culling** 사용, 60FPS 이상 유지.
 - **재질 및 텍스처**: 다양한 재질과 텍스처 지원.
 
-### **Engine composition**
+#### **Engine composition**
 
 - **Lighting & Shadow Rendering**: 다중 광원 지원 및 동적 그림자 렌더링.
 - **Scene Load System**: JSON 또는 유사 형식 지원, 조명 및 오브젝트 속성 관리.
