@@ -45,7 +45,7 @@ VeryRealEngine 과제의 요구사항은 다음과 같다.
 - **Physics Simulation**: 충돌 감지, 중력, 마찰 등을 포함한 물리 시스템.
 - **Scene Hierarchy**: 부모-자식 관계를 포함한 오브젝트 관리.
 - **Optimization**: **Frustum Culling**, **Occlusion Culling** 사용, 60FPS 이상 유지.
-- **재질 및 텍스처**: 다양한 재질과 텍스처 지원.
+- **Material & Texture**: 다양한 재질과 텍스처 지원.
 
 #### **Engine composition**
 
