@@ -60,7 +60,7 @@ collections:
 ### Disqus ###
 disqus:
   comments: true
-  shortname: jgoo                   # Your website Shortname on disqus
+  shortname: jasongoo827                   # Your website Shortname on disqus
 
 
 ### Analytics ###
