@@ -4,6 +4,7 @@ tags: [Game Engine, Graphics]
 style: fill
 color: primary
 description: Vulkan 기반으로 직접 개발한 3D 게임 엔진 ALEngine을 소개합니다.
+comments: true
 ---
 
 블로그의 가장 첫 포스트로 내가 만든 게임엔진을 소개하려고 한다. 프로그래밍을 시작한 이후로 가장 정성을 들여 만든 프로그램이기에, 포스트도 내가 구현한 기능별로 상세하게 기록할 예정이다. 다 만들고 나서 아쉬운 점도 많았지만, 그래도 게임 엔진에 관해 많이 알게 되어 얻어가는 점도 많았다고 생각한다. 이제 AfterLife Engine에 대한 소개를 하겠다. 
