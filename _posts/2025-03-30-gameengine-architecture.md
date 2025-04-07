@@ -2,7 +2,7 @@
 title: Game Engine Architecture - Intro
 tags: [Game Engine]
 style: 
-color: 
+color: dark
 description: ALEngine Architecture 에 대한 소개글.
 ---
 
