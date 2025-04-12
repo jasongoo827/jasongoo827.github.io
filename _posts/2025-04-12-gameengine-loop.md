@@ -69,10 +69,10 @@ State Manager, Blending 등을 통해 애니메이션을 처리한다.
 
 ## 고려했던 점
 
-### 멀티쓰레드
+#### 멀티쓰레드
 "엔진이 싱글 쓰레드로 돌아가도 문제 없을까?" 라는 생각을 많이 했었다. ALEngine은 렌더링, 물리 연산, 애니메이션, 스크립트 기능이 구현되어 있는 간단한 엔진이다. 그렇기 때문에 이 정도 기능으로 부하가 안 생길거야! 라는 생각으로 멀티 쓰레딩을 구현하지 않았다. 하지만 Scene을 엄청나게 많은 Box Collider로 구성하면 부하가 많이 생긴다! 많은 물리 연산 -> 프레임 간 간격 증가 -> Duration 증가 -> 부정확한 물리 처리 이렇게 악순환이 반복됐었다. 이 악순환을 해소하려면 예전에 Broadphase 포스트의 마지막에서 얘기했던 것처럼 Fixed Duration 처리 + 물리 연산용 쓰레드로 최적화해야 한다.
 
-### 카메라가 없을 때
+#### 카메라가 없을 때
 Editor Camera는 항상 존재하지만, Scene에 있는 Camera를 없애면 Play를 눌렀을 때 아무것도 안 보여야하지 않을까? Unity를 시험해봤을 때, Scene Camera를 없애면 다음과 같이 나온다.
 
 ![NoCam](https://europe1.discourse-cdn.com/unity/original/3X/4/c/4c094899eed4fded2a651c1e50a00089b607ec2e.png)
@@ -81,7 +81,7 @@ Editor Camera는 항상 존재하지만, Scene에 있는 Camera를 없애면 Pla
 
 ![ALNoCam](/assets/nocam.png)
 
-### Frustum Culling
+#### Frustum Culling
 Frustum Culling은 카메라에 따라 절두체 공간을 계산하고, Culling을 할지 말지 결정했다.
 
 ```
@@ -101,10 +101,10 @@ void Renderer::beginScene(Scene *scene, Camera &camera)
 
 // Draw 호출
 MeshRendererComponent &meshRendererComponent = view.get<MeshRendererComponent>(entity);
-		if (meshRendererComponent.cullState == ECullState::RENDER)
-		{
-			meshRendererComponent.m_RenderingComponent->draw(drawInfo);
-		}
+if (meshRendererComponent.cullState == ECullState::RENDER)
+{
+    meshRendererComponent.m_RenderingComponent->draw(drawInfo);
+}
 
 ```
 
