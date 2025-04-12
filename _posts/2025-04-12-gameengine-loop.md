@@ -11,27 +11,35 @@ AfterLife 엔진의 구성이 어떻게 이루어져 있는지 지지난번 포�
 
 ## Unity의 Update Frame 처리 순서
 Unity의 프레임 처리를 크게 나누면 다음과 같다. 
-### 1. 입력 처리
+#### 1. 입력 처리
 - 키보드, 마우스 등 입력 데이터 처리
-### 2. Time 값 갱신
+
+#### 2. Time 값 갱신
 - Time.deltaTime, Time.time 시간 관련 변수들 갱신
-### 3. FixedUpdate() 호출
+
+#### 3. FixedUpdate() 호출
 - 고정 시간 간격으로 실행
 - Rigidbody, Force, Collision 같은 물리 연산 처리
-### 4. Physics 처리
+
+#### 4. Physics 처리
 - Rigidbody, Collider 등 계산 실행
 - 충돌, 위치 이동 등 보정
-### 5. Update() 호출
+
+#### 5. Update() 호출
 - 매 프레임 실행됨
 - 입력 처리, 게임 로직, Animation Trigger 등에 사용
-### 6. Animator 처리
+
+#### 6. Animator 처리
 - Animation 연산 처리(Transition, Blending, etc)
-### 7. LateUpdate() 호출
+
+#### 7. LateUpdate() 호출
 - Update 후 실행
 - 카메라 따라가기 같은 후처리를 위해 사용
-### 8. Coroutine 처리
+
+#### 8. Coroutine 처리
 - yield return로 규정된 시간이 되면 다시 건너가며 실행
-### 9. Rendering
+
+#### 9. Rendering
 
 ## ALEngine Update Frame
 위의 흐름을 참고해 ALEngine의 흐름을 Edit 상태와 Play 상태로 나누어 구분했다. Play 상태는 Editor의 Play 버튼을 눌렀을 때를 의미하고, Edit 상태는 평소의 상태를 의미한다.
