@@ -38,7 +38,7 @@ Unity의 프레임 처리를 크게 나누면 다음과 같다.
 
 
 ### Edit Loop
-![EditLoop](../_images/OnUpdateEdit.png)
+![EditLoop](_images/OnUpdateEdit.png)
 
 #### 카메라 위치, 시점 선택
 Scene을 어디서 바라볼지 정하는 과정이다. 영화를 찍을 때 감독이 큐 사인을 내리면 카메라로 장면을 촬영하는 것과 비슷하다고 생각하면 쉽다. 카메라는 평소에는 EditorCamera, Play에는 SceneCamera를 사용해 시점을 다르게 보여준다.
@@ -48,7 +48,7 @@ Frustum Culling을 사용해 카메라의 시야 범위 밖에 있는 물체들�
 
 
 ### Update Loop
-![UpdateLoop](../_images/OnUpdatePlay.png)
+![UpdateLoop](_images/OnUpdatePlay.png)
 
 #### 게임 로직 처리
 오브젝트에 부착된 Script가 실시간으로 적용되게 처리한다. 게임이 어떻게 돌아가는지 실질적으로 정의되어 있는 부분이다. 영화로 치면 각 배우의 대사, 그리고 배우 간 상호작용이라고 생각할 수 있겠다. 
@@ -71,7 +71,7 @@ Editor Camera는 항상 존재하지만, Scene에 있는 Camera를 없애면 Pla
 
 그래서 ALEngine도 비슷하게 처리했다. 우리 렌더링 팀원 surkim이 손수 제작한 이미지다...
 
-![ALNoCam](../_images/nocam.png)
+![ALNoCam](_images/nocam.png)
 
 ### Frustum Culling
 Frustum Culling은 카메라에 따라 절두체 공간을 계산하고, Culling을 할지 말지 결정했다.
