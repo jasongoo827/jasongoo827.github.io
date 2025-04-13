@@ -2,45 +2,36 @@
 layout: page
 ---
 
-<div class="row">
-  <!-- 본문 영역 -->
-  <div class="col-md-9">
-    <h1><b>{{ page.title }}</b></h1>
+<h1><b>{{ page.title }}</b></h1>
 
-    <p class="post-metadata text-muted">
-      {{ page.date | date_to_long_string }} -  
-      <b>
-      {%- assign words = content | number_of_words -%}
-      {%- if words < 360 -%}
-        less than 1 min read time
-      {%- else -%}
-        {{ words | divided_by: 180 }} mins read time
-      {%- endif -%}
-      </b>
+<p class="post-metadata text-muted">
+  {{ page.date | date_to_long_string }} -  
+  <b>
+  {%- assign words = content | number_of_words -%}
+  {%- if words < 360 -%}
+    less than 1 min read time
+  {%- else -%}
+    {{ words | divided_by: 180 }} mins read time
+  {%- endif -%}
+  </b>
 
-      <br>
+  <br>
 
-      {%- if page.tags != empty -%}
-        Tags: 
-        {% for tag in page.tags %}
-        <a class="text-decoration-none no-underline" href="{{ tag | slugify | prepend:'/blog/tags#' | relative_url }}">
-          <span class="tag badge badge-pill text-primary border border-primary">{{ tag }}</span>
-        </a>
-        {% endfor %}
-      {%- endif -%}
-    </p>
+  {%- if page.tags != empty -%}
+    Tags: 
+    {% for tag in page.tags %}
+    <a class="text-decoration-none no-underline" href="{{ tag | slugify | prepend:'/blog/tags#' | relative_url }}">
+      <span class="tag badge badge-pill text-primary border border-primary">{{ tag }}</span>
+    </a>
+    {% endfor %}
+  {%- endif -%}
 
-    {{ content }}
+</p>
 
-    {% if page.comments %}
-    <div class="pt-5">
-      {% include blog/disqus.html %}
-    </div>
-    {% endif %}
-  </div>
+{{ content }}
 
-  <!-- 사이드바 영역 -->
-  <div class="col-md-3">
-    {% include blog/sidebar.html %}
-  </div>
+{% if page.comments %}
+<div class="pt-5">
+  {% include blog/disqus.html %}
 </div>
+{% endif %}
