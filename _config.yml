@@ -5,7 +5,7 @@ description         : >-
 baseurl             : ""            # Change to empty quotes if you are hosting your site at <your-username>.github.io directly
 url: "https://jasongoo827.github.io"
 repository          : jasongoo827/jasongoo827.github.io      # Change to <your-username>/<your-username>.github.io (or remove it if you don't need remote projects)
-remote_theme        : yousinix/portfolYOU
+remote_theme        : yousinix/portfolYOU@2.3.0
 open_new_tab        : false                    # Opens external URLs in new tab (works for posts, projects and navbar only)
 
 
