@@ -1,0 +1,21 @@
+// assets/css/style.scss 혹은 main.scss
+---
+---
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 16px;
+    line-height: 1.8;
+    color: #333;
+  }
+  
+  h1, h2, h3, h4 {
+    font-family: 'Nanum Gothic', sans-serif;
+    line-height: 1.4;
+  }
+  
+  p {
+    margin-bottom: 1em;
+  }
+  
+  @import "portfolYOU";

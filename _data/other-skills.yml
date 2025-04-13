@@ -1,0 +1,7 @@
+- name: Github
+  percentage: 85
+  color: info
+
+- name: Notion
+  percentage: 70
+  color: success

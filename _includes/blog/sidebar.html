@@ -1,0 +1,16 @@
+<div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      {% assign tags = site.tags | sort %}
+      {% for tag in tags %}
+        {% assign tag_name = tag[0] %}
+        {% assign posts = tag[1] %}
+        <li>
+          <a href="{{ site.baseurl }}/blog/tags#{{ tag_name | slugify }}">
+            {{ tag_name }} ({{ posts | size }})
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+  
