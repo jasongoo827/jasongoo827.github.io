@@ -1,4 +1,7 @@
 // assets/css/style.scss 혹은 main.scss
+---
+---
+
 body {
     font-family: 'Noto Sans KR', sans-serif;
     font-size: 16px;
@@ -15,3 +18,4 @@ body {
     margin-bottom: 1em;
   }
   
+  @import "portfolYOU";

@@ -70,7 +70,7 @@ AL/include
 어차피 CMake 파일 명령어 사용법은 반복되는 부분이 많으니 이 부분에서 설명하고 넘어가겠다. AL의 CMake 파일을 보면서 설명하겠다.
 
 
-```
+``` cmake
 cmake_minimum_required(VERSION 3.20)
 set(PROJECT_NAME AfterLife)
 project(${PROJECT_NAME})
@@ -163,7 +163,7 @@ add_dependencies(${PROJECT_NAME} ${DEP_LIST})
 ### Dependency.cmake
 CMake를 처음 써 본 입장에서 이게 가장 좋았다. 외부 라이브러리들을 미리 프로젝트에 포함시키는 방식이 아니라, 실시간으로 외부에서 가져온 후 build 디렉토리 아래에 include 설정과 링크만 해주면 사용할 수 있는 점이 너무 편했다. 프로젝트의 용량을 줄일 수 있는 아주 좋은 도구이다. 대부분의 라이브러리들은 git 주소를 통해 가져왔다.
 
-```
+``` cmake
 # ExternalProject 관련 명령어 셋 추가
 include(ExternalProject)
 
@@ -358,7 +358,7 @@ AL-ScriptCore/
 이 프로젝트는 .NET 기반 C# 프로젝트이기 때문에 약간 다르게 설정해줘야 했다. Debug/Release 별로 Visual Studio에서 어떻게 build 할지 옵션을 설정해줬다.
 
 ### CMakeLists.txt
-```
+``` cmake
 # Debug / Release 빌드에 따라 값 설정
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     # Visual StudioDebug 빌드 설정
@@ -402,7 +402,7 @@ Sandbox/Project
 ### Main CMakeLists.txt
 가장 처음에 실행되는 CMake이다. 윈도우가 아닐 때는 실행이 안되게 처리해 놓았다. 만약에 Cross Platform을 지원한다면 이 부분을 좀 더 자세하게 작성해야 할 것이다.
 
-```
+``` cmake
 cmake_minimum_required(VERSION 3.20)
 project(GameEngine)
 

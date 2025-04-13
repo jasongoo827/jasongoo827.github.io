@@ -128,7 +128,7 @@ BVH에 필요한 기능은 노드 삽입, 삭제, 트리 회전이다. 회전은
 
 #### TreeNode
 
-```
+```cpp
 struct TreeNode
 {
 	/**
@@ -159,7 +159,7 @@ struct TreeNode
 다음은 트리이다. proxy라는 말이 생소한데, 그냥 노드라고 생각하면 된다.
 노드를 vector로 관리하는데, 메모리 풀로 관리한다면 메모리 할당에 쓰는 cpu를 최적화할 수 있다. 
 
-```
+``` cpp
 
 /**
  * @class DynamicTree
@@ -298,7 +298,7 @@ class DynamicTree
 인자로 검사하고자 하는 Volume을 넣어주고, 트리의 루트 노드부터 순회하며 단말 노드까지 검사한다. stack을 사용하는 것이 특징이다. testOverlap 함수는 두 AABB가 겹치는지 확인하는 함수이다.
 
 
-```
+``` cpp
 
 template <typename T> inline void DynamicTree::query(T *callback, const AABB &aabb) const
 {

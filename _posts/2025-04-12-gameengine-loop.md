@@ -84,7 +84,7 @@ Editor Camera는 항상 존재하지만, Scene에 있는 Camera를 없애면 Pla
 #### Frustum Culling
 Frustum Culling은 카메라에 따라 절두체 공간을 계산하고, Culling을 할지 말지 결정했다.
 
-```
+``` cmake
 void Renderer::beginScene(Scene *scene, Camera &camera)
 {
 	camera.setAspectRatio(viewPortSize.x / viewPortSize.y);
