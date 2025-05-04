@@ -127,6 +127,7 @@ Scene의 정보를 효과적으로 저장하고 엔진 상에 띄우려면 적�
 #### 구현
 
 ``` cpp
+
 // Serialize 함수
 void SceneSerializer::serialize(const std::string &filepath)
 {
@@ -242,7 +243,9 @@ bool SceneSerializer::deserialize(const std::string &filepath)
 	}
 	return true;
 }
+```
 
+``` cpp
 
 namespace YAML
 {
@@ -293,10 +296,10 @@ template <> struct convert<ale::UUID>
 ---
 
 ## Editor
-실시간으로 scene의 구성 요소를 편집할 수 있게 gui를 만들었다. 구성 요소의 계층 구조를 표현하는 Scene Hierarchy, Entity의 속성을 자세히 보여주는 Inspector, 프로젝트의 리소스를 시각적으로 보여주는 Content Browser Panel을 만들었다. Editor를 개발할 때 주요 목표는 클릭이나 드래그, 드래그 & 드롭 등 손쉬운 동작을 통해 Scene을 편집할 수 있게 하는 것이었다. 또한 렌더링 담당인 surkim과 물리 시뮬레이션 담당인 seonjo가 자신이 만든 기능을 바로 테스트 해볼 수 있게 만드는 것도 중요했다. 
+실시간으로 scene의 구성 요소를 편집할 수 있게 gui를 만들었다. 구성 요소의 계층 구조를 표현하는 Scene Hierarchy, Entity의 속성을 자세히 보여주는 Inspector, 프로젝트의 리소스를 시각적으로 보여주는 Content Browser Panel을 만들었다. Editor를 개발할 때 주요 목표는 클릭, 드래그 & 드롭 등 손쉬운 동작을 통해 Scene을 편집할 수 있게 하는 것이었다. 또한 렌더링 담당인 surkim과 물리 시뮬레이션 담당인 seonjo가 자신이 만든 기능을 바로 테스트 해볼 수 있게 만드는 것도 중요했다. 
 
 #### Scene Hierarchy
-Scene Hierarchy는 게임이나 애플리케이션에서 Scene을 구성하는 Entity 들의 계층적 구조를 의미한다. 부모-자식 관계(parent-child relationship)로 오브젝트들이 연결된다. 한 오브젝트가 이동하거나 변형(transform)되면, 그 자식들도 같이 영향을 받는다. 트리(Tree) 형태로 구성되어, 복잡한 장면을 논리적으로 관리할 수 있게 한다.
+Scene Hierarchy는 게임이나 애플리케이션에서 Scene을 구성하는 Entity 들의 계층적 구조를 의미한다. 부모-자식 관계(parent-child relationship)으로 오브젝트들이 연결된다. 한 오브젝트가 이동하거나 변형(transform)되면, 그 자식들도 같이 영향을 받는다. 트리(Tree) 형태로 구성되어, 복잡한 장면을 논리적으로 관리할 수 있게 한다.
 
 Scene Hierarchy를 구현하기 위해 SceneHierarchyPanel이라는 클래스를 만들었고, 해당 클래스가 담당한 기능은 다음과 같다.
 
@@ -304,6 +307,7 @@ Scene Hierarchy를 구현하기 위해 SceneHierarchyPanel이라는 클래스를
 Entity의 tagComponent 정보를 가져와 ImGui를 통해 이름을 표시할 수 있게 했다.
 
 ```cpp
+
 void SceneHierarchyPanel::drawEntityNode(Entity entity)
 {
 	auto &tag = entity.getComponent<TagComponent>().m_Tag;
@@ -339,7 +343,7 @@ struct RelationshipComponent
 Scene Hierarchy에서 Entity를 클릭했을 때 부모 Entity가 자식을 가지고 있다면, 자식 Entity들의 이름도 표시되게 했다.
 
 ```cpp
-// If node opened, draw child nodes
+
 if (opened)
 {
 	auto &relation = entity.getComponent<RelationshipComponent>();
@@ -358,6 +362,7 @@ ImGui는 내부적으로 UI들을 서로 구분하기 위해 ID를 사용하는�
 3가지 방법을 모두 사용해보았는데, 상황마다 좋은 방법이 다르다고 생각했다. 문자열의 경우는 비효율적이지 않나라는 생각이 들었는데, 내부에서 해싱해 관리한다고 하니 괜찮다고 한다.
 
 ``` cpp
+
 if (ImGui::BeginDragDropSource())
 {
 	Entity e = entity;
@@ -418,29 +423,29 @@ Entity를 Scene 상에 쉽게 추가하고 삭제할 수 있게 구현했다. �
 ```cpp
 
 // 오른쪽 클릭으로 Popup 활성화
-	if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
-	{
-		if (ImGui::MenuItem("Create Empty"))
-			m_Context->createEntity("Empty");
+if (ImGui::BeginPopupContextWindow(0, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
+{
+	if (ImGui::MenuItem("Create Empty"))
+		m_Context->createEntity("Empty");
 
-		if (ImGui::BeginMenu("3D Object"))
-		{
-			if (ImGui::MenuItem("Box"))
-				m_Context->createPrimitiveMeshEntity("Box", 1);
-			if (ImGui::MenuItem("Sphere"))
-				m_Context->createPrimitiveMeshEntity("Sphere", 2);
-			if (ImGui::MenuItem("Plane"))
-				m_Context->createPrimitiveMeshEntity("Plane", 3);
-			if (ImGui::MenuItem("Ground"))
-				m_Context->createPrimitiveMeshEntity("Ground", 4);
-			if (ImGui::MenuItem("Capsule"))
-				m_Context->createPrimitiveMeshEntity("Capsule", 5);
-			if (ImGui::MenuItem("Cylinder"))
-				m_Context->createPrimitiveMeshEntity("Cylinder", 6);
-			ImGui::EndMenu();
-		}
-		ImGui::EndPopup();
+	if (ImGui::BeginMenu("3D Object"))
+	{
+		if (ImGui::MenuItem("Box"))
+			m_Context->createPrimitiveMeshEntity("Box", 1);
+		if (ImGui::MenuItem("Sphere"))
+			m_Context->createPrimitiveMeshEntity("Sphere", 2);
+		if (ImGui::MenuItem("Plane"))
+			m_Context->createPrimitiveMeshEntity("Plane", 3);
+		if (ImGui::MenuItem("Ground"))
+			m_Context->createPrimitiveMeshEntity("Ground", 4);
+		if (ImGui::MenuItem("Capsule"))
+			m_Context->createPrimitiveMeshEntity("Capsule", 5);
+		if (ImGui::MenuItem("Cylinder"))
+			m_Context->createPrimitiveMeshEntity("Cylinder", 6);
+		ImGui::EndMenu();
 	}
+	ImGui::EndPopup();
+}
 
 Entity Scene::createPrimitiveMeshEntity(const std::string &name, uint32_t idx)
 {
@@ -468,7 +473,6 @@ Inspector는 Entity가 갖고 있는 Component들을 자세히 확인할 수 있
 ``` cpp
 
 // drawEntityNode에서 작성
-
 ImGui::Begin("Inspector");
 if (m_SelectionContext)
 {
@@ -658,6 +662,7 @@ static void drawComponent(const std::string &name, Entity entity, UIFunction uiF
 람다함수로 그리고자 하는 UI의 내용(UIFunction)을 작성하면 된다. 아주 간단한 예시 하나만 설명하겠다. 
 
 ``` cpp
+
 drawComponent<CylinderColliderComponent>("CylinderCollider", entity, [](auto &component) {
 
 	drawVec3Control("Center", component.m_Center);
@@ -672,5 +677,88 @@ drawComponent<CylinderColliderComponent>("CylinderCollider", entity, [](auto &co
 CylinderCollider의 경우는 자주 사용하는 UI(vec3, Float, CheckBox)에 관한 것만 있어 내용이 단순하다. 하지만 MeshRendererComponent나 SkeletalAnimatorComponent, ScriptComponent 같은 경우는 작성해야 할 UI의 내용이 매우 많기 때문에 복잡하다. 처음에는 표시해야 할 내용이 많이 없어 하나의 cpp 파일에 작성하는 것이 큰 문제가 되지 않을 것이라 생각했는데, 나중에 다 완성하고 보니 너무 코드가 많고 지저분해 보였다. 다시 Editor를 만들게 될 일이 있다면, 코드를 좀 더 체계적으로 작성해야 할 것 같다.
 
 #### Content Browser
-Content Browser는 게임 엔진 안에서 모든 리소스를 관리하는 도구이다. 주요 기능은 폴더 구조 탐색, 미리보기, 검색, 에셋 생성/삭제/이동 등이 있다. 내가 구현한 것은 폴더 구조 탐색, 드래그 & 드롭으로 material이나 texture, skybox 수정하기 기능이다.
+Content Browser는 게임 엔진 안에서 모든 리소스를 관리하는 도구이다. 리소스란 텍스처(texture), 메시(mesh), 사운드(sound), 애니메이션(animation), 스크립트(script), 레벨(scene) 등 게임에 필요한 모든 파일들을 의미한다. Content Browser의 주요 기능은 폴더 구조 탐색, 미리보기, 검색, 에셋 생성/삭제/이동 등이 있다.
 
+ALEngine의 Content Browser은 폴더 구조 탐색, 드래그 & 드롭으로 material이나 texture, skybox 수정하기 기능이 있다.
+
+``` cpp
+
+void ContentBrowserPanel::onImGuiRender()
+{
+	// ...
+
+	if (m_CurrentDirectory != std::filesystem::path(m_BaseDirectory))
+	{
+		if (ImGui::Button("<-"))
+		{
+			m_CurrentDirectory = m_CurrentDirectory.parent_path();
+		}
+	}
+
+	// ...
+
+	for (auto &directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
+	{
+		const auto &path = directoryEntry.path();
+
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+		{
+			if (directoryEntry.is_directory())
+				m_CurrentDirectory /= path.filename();
+
+		}
+	}
+
+	// ...
+}
+
+```
+
+Content Browser 생성 시 BaseDirectory를 프로젝트가 진행되는 경로로 등록해주고, "<-
+ 버튼을 누르면 현재 디렉토리의 부모로 갈 수 있게, 디렉토리 아이콘을 누르면 자식 디렉토리로 갈 수 있게 구현했다. 이번 프로젝트를 하며 std::filesystem에 대해 처음 알게 됐는데, 파일 시스템을 구현할 때 많이 편리하다고 느꼈다. "/" 연산자를 통해 경로를 더해 나간다거나, is_directory(), parent_path() 등 좋은 기능이 많았다.
+
+
+``` cpp
+
+for (auto &directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
+{
+	const auto &path = directoryEntry.path();
+
+	ImTextureID icon = directoryEntry.is_directory() ? reinterpret_cast<ImTextureID>(directoryDescriptorSet)
+														: reinterpret_cast<ImTextureID>(fileDescriptorSet);
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+	ImGui::ImageButton("Icon", icon, {thumbnailSize, thumbnailSize}, {0, 1}, {1, 0});
+
+	if (ImGui::BeginDragDropSource())
+	{
+		std::filesystem::path relativePath(path);
+		const wchar_t *itemPath = relativePath.c_str();
+		// KeyString - Value(itemPath) 어디서든 사용 가능
+		ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
+		ImGui::EndDragDropSource();
+	}
+
+}
+
+// SceneHierarchyPanel::drawComponents(Entity entity)
+
+if (ImGui::BeginDragDropTarget())
+{
+	if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+	{
+		// ...
+	}
+	ImGui::EndDragDropTarget();
+}
+
+```
+
+현재 디렉토리를 순회하며 디렉토리이면 폴더 아이콘, 아닌 경우에는 파일 아이콘을 띄울 수 있게 했다. 그리고 드래그 & 드롭의 키로 "CONTENT_BROWSER_ITEM"을 설정해 Scene Hierarchy에서 해당 source를 받아오면 target으로 인식할 수 있게 만들었다. 
+
+더 추가하고 싶었던 기능은 C# 스크립트 파일을 더블 클릭했을 때 Visual Studio가 실행되게 하거나, gltf나 texture 파일을 미리 볼 수 있게 하거나 등이 있었다. 특히 후자의 경우를 구현하고 싶었는데, 이를 구현하려면 Vulkan 리소스 관리를 좀 더 체계적으로 해야되기 때문에 나중에 추가하기는 어려웠다. 
+
+## 정리
+이번 포스트에서는 Scene Load System, 그리고 ImGui를 활용한 에디터 구성—Scene Hierarchy, Inspector, Content Browser의 구현 방식을 소개했다.
+직접 구현을 하면서 느낀 점은, ECS(Entity-Component-System)를 엔진의 코어 시스템으로 선택한 것이 다양한 기능의 개발 난이도를 확실히 낮춰준다는 것이다. Scene이나 UI를 구성할 때, 별도의 상태를 따로 관리할 필요 없이 Entity와 Component를 저장하는 자료 구조에서 필요한 데이터를 가져와 시각화하면 되기 때문에, 구현이 간단해진다. 결국, 코어 시스템의 설계가 탄탄하면 할수록 유지보수성과 확장성 모두에서 큰 이점을 갖게 된다는 점을 다시 한 번 느꼈다.
+
+다음 포스트는 Scripting이다. 가장 어려움을 많이 겪었던 부분이기 때문에 최대한 자세하게 잘 정리해보려고 한다. 
