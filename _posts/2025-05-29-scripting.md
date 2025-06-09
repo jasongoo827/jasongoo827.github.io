@@ -25,7 +25,7 @@ Mono는 .NET Framework의 오픈소스 구현체로, 다양한 플랫폼에서 C
 
 ALEngine의 Scripting System은 다음과 같은 흐름으로 동작한다
 
-1. C# 스크립트 작성 및 DLL 빌드
+**1. C# 스크립트 작성 및 DLL 빌드**
 
     사용자는 Player.cs, Camera.cs 같은 C# 클래스를 작성한 후, 이를 DLL로 컴파일한다. 이 DLL은 엔진이 실행될 때 로딩된다. 모든 스크립트 클래스는 Entity 클래스를 상속받으며, onCreate(), onUpdate(float ts) 등의 메서드를 구현해야 한다는 규칙을 따른다. 또한 스크립트에서 사용하는 규칙(자료형, 클래스)을 따로 정의해 이를 DLL로 컴파일한다.
 
@@ -68,7 +68,7 @@ ALEngine의 Scripting System은 다음과 같은 흐름으로 동작한다
 
     ```
 
-2. 엔진 실행 시 DLL 로딩 및 클래스 등록
+**2. 엔진 실행 시 DLL 로딩 및 클래스 등록**
 
     엔진은 시작 시 C# DLL을 Mono를 통해 로딩하고, 내부에 포함된 모든 클래스 정보를 수집한다. 이 과정에서 클래스 이름, 메서드 포인터, 필드 정보 등이 ScriptClass 객체에 저장된다. 이는 나중에 Entity와 연결될 때 사용된다.
 
@@ -131,7 +131,7 @@ ALEngine의 Scripting System은 다음과 같은 흐름으로 동작한다
 
     ```
 
-3. ScriptComponent를 가진 Entity 탐색 및 인스턴스 생성
+**3. ScriptComponent를 가진 Entity 탐색 및 인스턴스 생성**
 
     Scene이 로드되면, 모든 Entity를 순회하며 ScriptComponent가 있는지를 확인한다. 만약 해당 컴포넌트의 클래스 이름이 사전에 등록된 ScriptClass와 일치한다면, 해당 C# 클래스의 인스턴스를 생성한다.
 
@@ -162,7 +162,7 @@ ALEngine의 Scripting System은 다음과 같은 흐름으로 동작한다
 
     ```
 
-4.	스크립트 메서드 실행
+**4. 스크립트 메서드 실행**
 
     생성된 인스턴스에 대해 onCreate()가 한 번 호출되며, 매 프레임마다 onUpdate(ts) 메서드가 호출된다. 이 때 ts는 프레임 간 시간 간격으로, 엔진이 매 프레임 전달한다. ScriptInstance는 특정 Entity에 연결된 C# 인스턴스를 관리한다. 현재는 C++에서 스크립트를 제어하는 단방향 구조이지만, 향후 C# 측에서도 엔진 Entity를 조작할 수 있도록 래퍼 클래스를 제공하는 방식으로 확장할 수 있다.
 
@@ -186,7 +186,7 @@ ALEngine의 Scripting System은 다음과 같은 흐름으로 동작한다
 
     ```
 
-5.	C# → C++ 호출: Internal Call을 통한 엔진 API 접근
+**5. C# → C++ 호출: Internal Call을 통한 엔진 API 접근**
 
     C# 스크립트에서 엔진 기능을 직접 호출할 수 있도록 Mono의 internal call 기능을 사용해 주요 엔진 API를 바인딩했다. 예를 들어 getComponent<T>(), addForce(Vector3 force)와 같은 함수들은 C++ 측 엔진 함수와 연결되어 있으며, 스크립트에서 직접 사용할 수 있다.
 
