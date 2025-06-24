@@ -106,3 +106,87 @@ GetQueuedCompletionStatus(iocp, ...);
 - 이벤트 등록과 감지를 모두 kevent()로 처리
 
 Webserv 과제는 macOS에서 진행해야 하기 때문에, kqueue를 사용해서 I/O Multiplexing을 구현했다. 
+전체적인 코드는 다음과 같다.
+
+## 구현
+
+```c++
+
+bool		ServerManager::RunServer(Config* config)
+{
+	struct kevent				change_event;
+	struct kevent				events[60];
+
+	while(true)
+	{
+		if (config->GetServerVec().empty())
+		{
+			std::cerr << "No server configuration\n";
+			return false;
+		}
+		if (InitKqueue(kq, sock_serv) == false)
+			continue ;
+		
+		// Server 초기화
+		for (std::vector<Server>::const_iterator it = config->GetServerVec().begin(); it != config->GetServerVec().end(); ++it)
+		{
+			if (InitServerAddress(kq, addr_serv, it->GetPort()) == false)
+			{
+				CloseAllServsock();
+				break ;
+			}
+			if (InitServerSocket(kq, sock_serv, addr_serv) == false)
+			{
+				CloseAllServsock();
+				break ;
+			}
+			if (RegistSockserv(kq, sock_serv, change_event) == false)
+			{
+				CloseAllServsock();
+				break ;
+			}
+			v_sock_serv.push_back(sock_serv);
+		}
+		if (kq == 0)
+			continue ;
+		while (1)
+		{
+			if (CheckEvent(kq, events, event_count) == false)
+				break ;
+			for (int i = 0; i < event_count; ++i)
+			{
+			    // Client Socket 등록 & Connection 추가
+				if (events[i].filter == EVFILT_READ && CheckValidServer(events[i].ident))
+				{
+					int 				sock_client;
+					struct sockaddr_in	addr_client;
+					if (InitClientSocket(kq, sock_serv, change_event, sock_client, addr_client, sizeof(addr_client)) == false)
+						continue ;
+					Connection *con = new Connection(kq, sock_client, addr_client, config, &session);
+					v_connection.push_back(con);
+					AddConnectionMap(sock_client, v_connection.back());
+				}
+				// Request or Response 처리
+				else if (!(events[i].flags & EV_EOF) || (connectionmap.find(static_cast<int>(events[i].ident)) != connectionmap.end() && (events[i].filter == EVFILT_READ && connectionmap[static_cast<int>(events[i].ident)]->GetProgress() == CGI)))
+				{
+					if (connectionmap.find(static_cast<int>(events[i].ident)) == connectionmap.end())
+						continue;
+					Connection* connection = connectionmap[static_cast<int>(events[i].ident)];
+					connection->MainProcess(events[i]);
+					connection->UpdateTimeval();
+					AfterProcess(connection);
+				}
+				// Connection 끊기
+				else if (events[i].flags & EV_EOF)
+				{
+					// ...
+				}
+			}
+			CheckConnectionTimeout();
+		}
+		CloseAllConnection();
+	}
+	return (0);
+}
+
+```
