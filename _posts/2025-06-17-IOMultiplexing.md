@@ -106,87 +106,84 @@ GetQueuedCompletionStatus(iocp, ...);
 - 이벤트 등록과 감지를 모두 kevent()로 처리
 
 Webserv 과제는 macOS에서 진행해야 하기 때문에, kqueue를 사용해서 I/O Multiplexing을 구현했다. 
-전체적인 코드는 다음과 같다.
+kqueue를 사용하기 위해 알아야 하는 것이 몇 가지 있다.
+
+- kqueue(), kevent()
+
+```c++
+#include <sys/event.h>
+
+int kqueue();
+
+int kevent(int kq,
+    const struct kevent * changelist, int nchanges,
+    struct kevent * eventlist, int nevents,
+    const struct timespec * timeout);
+```
+
+kqueue() 함수는 새로운 이벤트 큐를 생성하는 함수이다. 반환값은 이벤트 큐의 File Descriptor이다. 이는 이후에 kevent() 호출에 사용된다.
+
+kevent() 함수는 이벤트를 등록하거나, 발생한 이벤트를 감지할 때 사용하는 시스템 콜이다. 이벤트 등록할 때는 changelist에 담아 넘기면 되고, 감지하려면 eventlist에 발생한 이벤트들을 담아 반환받는다.
+timeout을 통해 대기 시간 조정도 가능하다.
+
+
+- kevent 구조체
+
+```c++
+struct kevent {
+    uintptr_t  ident;    // 감시 대상 (파일 디스크립터 등)
+    int16_t    filter;   // 이벤트 종류 (ex: EVFILT_READ, EVFILT_WRITE)
+    uint16_t   flags;    // 동작 설정 플래그 (ex: EV_ADD, EV_ENABLE)
+    uint32_t   fflags;   // filter-specific 플래그 (많이 사용되진 않음)
+    intptr_t   data;     // 이벤트에 따라 의미가 달라짐 (ex: read 가능 바이트 수)
+    void*      udata;    // 유저 정의 포인터 (컨텍스트 전달용)
+};
+```
+
+
 
 ## 구현
 
 ```c++
+// RunSever 함수
 
-bool		ServerManager::RunServer(Config* config)
+struct kevent				change_event;
+struct kevent				events[60];
+
+while (1)
 {
-	struct kevent				change_event;
-	struct kevent				events[60];
-
-	while(true)
-	{
-		if (config->GetServerVec().empty())
-		{
-			std::cerr << "No server configuration\n";
-			return false;
-		}
-		if (InitKqueue(kq, sock_serv) == false)
-			continue ;
-		
-		// Server 초기화
-		for (std::vector<Server>::const_iterator it = config->GetServerVec().begin(); it != config->GetServerVec().end(); ++it)
-		{
-			if (InitServerAddress(kq, addr_serv, it->GetPort()) == false)
-			{
-				CloseAllServsock();
-				break ;
-			}
-			if (InitServerSocket(kq, sock_serv, addr_serv) == false)
-			{
-				CloseAllServsock();
-				break ;
-			}
-			if (RegistSockserv(kq, sock_serv, change_event) == false)
-			{
-				CloseAllServsock();
-				break ;
-			}
-			v_sock_serv.push_back(sock_serv);
-		}
-		if (kq == 0)
-			continue ;
-		while (1)
-		{
-			if (CheckEvent(kq, events, event_count) == false)
-				break ;
-			for (int i = 0; i < event_count; ++i)
-			{
-			    // Client Socket 등록 & Connection 추가
-				if (events[i].filter == EVFILT_READ && CheckValidServer(events[i].ident))
-				{
-					int 				sock_client;
-					struct sockaddr_in	addr_client;
-					if (InitClientSocket(kq, sock_serv, change_event, sock_client, addr_client, sizeof(addr_client)) == false)
-						continue ;
-					Connection *con = new Connection(kq, sock_client, addr_client, config, &session);
-					v_connection.push_back(con);
-					AddConnectionMap(sock_client, v_connection.back());
-				}
-				// Request or Response 처리
-				else if (!(events[i].flags & EV_EOF) || (connectionmap.find(static_cast<int>(events[i].ident)) != connectionmap.end() && (events[i].filter == EVFILT_READ && connectionmap[static_cast<int>(events[i].ident)]->GetProgress() == CGI)))
-				{
-					if (connectionmap.find(static_cast<int>(events[i].ident)) == connectionmap.end())
-						continue;
-					Connection* connection = connectionmap[static_cast<int>(events[i].ident)];
-					connection->MainProcess(events[i]);
-					connection->UpdateTimeval();
-					AfterProcess(connection);
-				}
-				// Connection 끊기
-				else if (events[i].flags & EV_EOF)
-				{
-					// ...
-				}
-			}
-			CheckConnectionTimeout();
-		}
-		CloseAllConnection();
-	}
-	return (0);
+    if (CheckEvent(kq, events, event_count) == false)
+        break ;
+    for (int i = 0; i < event_count; ++i)
+    {
+        // Client Socket 등록 & Connection 추가
+        if (events[i].filter == EVFILT_READ && CheckValidServer(events[i].ident))
+        {
+            int 				sock_client;
+            struct sockaddr_in	addr_client;
+            if (InitClientSocket(kq, sock_serv, change_event, sock_client, addr_client, sizeof(addr_client)) == false)
+                continue ;
+            Connection *con = new Connection(kq, sock_client, addr_client, config, &session);
+            v_connection.push_back(con);
+            AddConnectionMap(sock_client, v_connection.back());
+        }
+        // Request or Response 처리
+        else if (!(events[i].flags & EV_EOF) || (connectionmap.find(static_cast<int>(events[i].ident)) != connectionmap.end() && (events[i].filter == EVFILT_READ && connectionmap[static_cast<int>(events[i].ident)]->GetProgress() == CGI)))
+        {
+            if (connectionmap.find(static_cast<int>(events[i].ident)) == connectionmap.end())
+                continue;
+            Connection* connection = connectionmap[static_cast<int>(events[i].ident)];
+            connection->MainProcess(events[i]);
+            connection->UpdateTimeval();
+            AfterProcess(connection);
+        }
+        // Connection 끊기
+        else if (events[i].flags & EV_EOF)
+        {
+            // ...
+        }
+    }
+    CheckConnectionTimeout();
 }
 
 ```
