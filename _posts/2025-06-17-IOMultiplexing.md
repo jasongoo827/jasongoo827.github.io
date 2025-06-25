@@ -47,7 +47,7 @@ I/O Multiplexing에 대해 설명하기에 앞서, 먼저 I/O 작업이 무엇�
 
 이 4가지 기준에 따라 I/O 모델을 4가지로 분류할 수 있는데, 각 모델들에 대한 설명을 잘 해놓은 글이 많기 때문에 자세한 설명을 하지는 않겠다.   
 
-## I/O Multiplexing - Asynchronous Blocking I/O
+## I/O Multiplexing - Asynchronous Blocking
 웹서버와 같은 네트워크 프로그램은 수십, 수백 개의 클라이언트와 동시에 통신해야 하는 상황에 자주 놓인다.
 단순한 Blocking 방식으로는 하나의 클라이언트 요청을 처리하는 동안 다른 클라이언트는 응답을 받을 수 없다. 이를 해결하기 위해 I/O Multiplexing이라는 개념이 등장했다.
 
@@ -140,9 +140,30 @@ struct kevent {
 };
 ```
 
+kevent는 이벤트를 등록하거나, 이벤트 발생 시 정보를 전달받을 때 사용하는 구조체이다. ident, filter, flag의 값을 통해 이벤트에 대한 정보를 알 수 있다.
 
+EV_SET 매크로를 사용해 이벤트를 등록할 수 있다.
+
+``` c++
+
+struct kevent change;
+EV_SET(&change, client_fd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+kevent(kq, &change, 1, NULL, 0, NULL);
+
+```
 
 ## 구현
+kqueue를 사용해 서버를 구현하려면 다음과 같은 순서로 구현해야 한다.
+
+1. kqueue 생성
+2. Server Socket 생성
+3. Server Socket을 kqueue에 등록
+4. kqueue에서 발생하는 이벤트 감시
+5. Server Socket으로 읽기 이벤트 발생 시, Client Socket 생성
+6. Client Socket으로 이벤트 발생 시, 적절한 응답 생성
+7. Client Socket의 연결이 끊어진다면 kqueue에서 제거
+
+
 
 ```c++
 // RunSever 함수
@@ -168,7 +189,9 @@ while (1)
             AddConnectionMap(sock_client, v_connection.back());
         }
         // Request or Response 처리
-        else if (!(events[i].flags & EV_EOF) || (connectionmap.find(static_cast<int>(events[i].ident)) != connectionmap.end() && (events[i].filter == EVFILT_READ && connectionmap[static_cast<int>(events[i].ident)]->GetProgress() == CGI)))
+        else if (!(events[i].flags & EV_EOF) || \
+        (connectionmap.find(static_cast<int>(events[i].ident)) != connectionmap.end() && \
+        (events[i].filter == EVFILT_READ && connectionmap[static_cast<int>(events[i].ident)]->GetProgress() == CGI)))
         {
             if (connectionmap.find(static_cast<int>(events[i].ident)) == connectionmap.end())
                 continue;
