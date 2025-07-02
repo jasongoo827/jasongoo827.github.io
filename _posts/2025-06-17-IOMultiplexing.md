@@ -152,6 +152,8 @@ kevent(kq, &change, 1, NULL, 0, NULL);
 
 ```
 
+⸻
+
 ## 구현
 kqueue를 사용해 서버를 구현하려면 다음과 같은 순서로 구현해야 한다.
 
@@ -159,54 +161,221 @@ kqueue를 사용해 서버를 구현하려면 다음과 같은 순서로 구현�
 2. Server Socket 생성
 3. Server Socket을 kqueue에 등록
 4. kqueue에서 발생하는 이벤트 감시
-5. Server Socket으로 읽기 이벤트 발생 시, Client Socket 생성
-6. Client Socket으로 이벤트 발생 시, 적절한 응답 생성
-7. Client Socket의 연결이 끊어진다면 kqueue에서 제거
+5. 서버가 끊어지면 모든 자원 정리
 
+⸻
 
+#### kqueue 생성
 
 ```c++
-// RunSever 함수
-
-struct kevent				change_event;
-struct kevent				events[60];
-
-while (1)
+bool	ServerManager::InitKqueue(int &kq, int &sock_serv)
 {
-    if (CheckEvent(kq, events, event_count) == false)
-        break ;
-    for (int i = 0; i < event_count; ++i)
-    {
-        // Client Socket 등록 & Connection 추가
-        if (events[i].filter == EVFILT_READ && CheckValidServer(events[i].ident))
-        {
-            int 				sock_client;
-            struct sockaddr_in	addr_client;
-            if (InitClientSocket(kq, sock_serv, change_event, sock_client, addr_client, sizeof(addr_client)) == false)
-                continue ;
-            Connection *con = new Connection(kq, sock_client, addr_client, config, &session);
-            v_connection.push_back(con);
-            AddConnectionMap(sock_client, v_connection.back());
-        }
-        // Request or Response 처리
-        else if (!(events[i].flags & EV_EOF) || \
-        (connectionmap.find(static_cast<int>(events[i].ident)) != connectionmap.end() && \
-        (events[i].filter == EVFILT_READ && connectionmap[static_cast<int>(events[i].ident)]->GetProgress() == CGI)))
-        {
-            if (connectionmap.find(static_cast<int>(events[i].ident)) == connectionmap.end())
-                continue;
-            Connection* connection = connectionmap[static_cast<int>(events[i].ident)];
-            connection->MainProcess(events[i]);
-            connection->UpdateTimeval();
-            AfterProcess(connection);
-        }
-        // Connection 끊기
-        else if (events[i].flags & EV_EOF)
-        {
-            // ...
-        }
-    }
-    CheckConnectionTimeout();
+	kq = kqueue();
+	if (kq == -1)
+	{
+		std::cerr << "kqueue fail\n";
+		close(sock_serv);
+		return (false);
+	}
+	return (true);
+}
+```
+
+kqueue 함수를 사용해 커널로부터 이벤트 큐를 생성한다. 
+
+⸻
+
+#### Server Socket 생성
+
+``` c++
+
+bool	ServerManager::InitServerAddress(int &kq, sockaddr_in &addr_serv, int port)
+{
+	void	*error = memset(&addr_serv, 0, sizeof(addr_serv));
+	addr_serv.sin_family = AF_INET;
+	addr_serv.sin_port = htons(port);
+	addr_serv.sin_addr.s_addr = htonl(INADDR_ANY);
+	if (error == NULL)
+	{
+		// ...
+	}
+	return (true);
 }
 
 ```
+
+서버 소켓을 만들기 전에 먼저 sockaddr_in 구조체를 사용해 포트와 IP 주소를 설정해준다. 
+
+AF_INET은 IPv4를 의미하고, IPv6를 쓰려면 AF_INET6을 사용한다. 여기서는 IPv4를 사용하니 AF_INET으로 설정한다. 
+
+htons(host-to-network short) 호스트 바이트 순서의 IP 포트 번호를 네트워크 바이트 순서의 IP 포트 번호로 변환한다. 
+
+htonl(host-to-network long) 함수를 사용하여 호스트 바이트 순서의 IPv4 주소를 네트워크 바이트 순서의 IPv4 주소로 변환한다. INADDR_ANY는 0.0.0.0을 의미하며, 모든 IP 주소로 들어오는 요청을 받겠다는 뜻이다.
+
+
+``` c++
+bool	ServerManager::InitServerSocket(int &kq, int &sock_serv, sockaddr_in &addr_serv)
+{
+	sock_serv = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock_serv == -1)
+	{
+		// 예외 처리
+	}
+
+	int enable = 1;
+	if (setsockopt(sock_serv, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+	{
+		// ...
+	}
+
+	if (bind(sock_serv, (struct sockaddr*)&addr_serv, sizeof(addr_serv)) == -1)
+	{
+		// ...
+	}
+
+	if (listen(sock_serv, 2048) == -1)
+	{
+		// ...
+	}
+
+	if (utils::SetNonBlock(sock_serv) == false)
+	{
+		// ...
+	}
+	return (true);
+}
+
+```
+
+socket() 함수를 사용해 서버 소켓을 만든다. AF_INET은 IPv4, SOCK_STREAM은 TCP 소켓 형식을 의미한다. 3번째 매개 변수는 프로토콜을 의미하는데, 0을 값으로 넣으면 자동으로 첫 번째, 두 번째 매개변수를 기준으로 인자값을 지정해준다.
+
+setsockopt() 함수를 사용해 socket 옵션을 설정해준다. SOL_SOCKET은 옵션을 socket level로 설정하는 것이다. SO_REUSEADDR은 소켓이 다른 소켓에서 사용 중인 포트에 강제로 바인딩할 수 있게 하는 옵션인데, 서버를 자주 껐다 켰다 하는 경우에 유용하다.
+
+bind() 함수를 사용해 앞에서 만든 소켓과 IP주소-포트 를 묶어준다.
+
+이제 listen() 함수를 통해 바인딩이 끝난 서버 소켓을 클라이언트의 요청을 받을 수 있는 상태로 만든다. 두 번째 인자인 2048은 백로그 큐의 크기로, 동시에 대기할 수 있는 연결 요청의 수를 의미한다.
+
+마지막으로 fcntl() 함수를 사용해 서버 소켓, 즉 파일 디스크립터를 O_NONBLOCK 설정 해준다. read 시 blocking으로 처리하면 데이터를 읽어올 때까지 기다리기 때문에 non blocking으로 설정해줘야 한다.
+
+⸻
+
+#### Server Socket을 kqueue에 등록
+
+``` c++
+
+bool	ServerManager::RegistSockserv(int &kq, int &sock_serv, struct ::kevent &change_event)
+{
+	EV_SET(&change_event, sock_serv, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	if (::kevent(kq, &change_event, 1, NULL, 0, NULL) == -1)
+	{
+		// ...
+	}
+	return (true);
+}
+
+```
+
+서버 소켓을 생성하고 바인딩한 후에, 클라이언트의 요청을 감지하기 위해 kqueue에 해당 소켓을 읽기 이벤트 대상으로 등록해야 한다. 
+
+⸻
+
+#### kqueue에서 발생하는 이벤트 감시
+
+``` c++
+
+bool	ServerManager::CheckEvent(int &kq, struct ::kevent *events, int &event_count)
+{
+	event_count = kevent(kq, NULL, 0, events, 60, NULL);
+	if (event_count == -1)
+	{
+		std::cerr << "kevent wait fail\n";
+		return (false);
+	}
+	return (true);
+}
+
+```
+
+kevent 함수를 사용해 event_count, events 배열을 받아온다.
+
+앞에서 만든 kqueue와 서버 소켓을 사용해 events 배열을 순회해, 클라이언트에서 들어온 요청을 처리하고, 발생한 이벤트들을 처리해야 한다. 이벤트 종류를 크게 3가지로 분류할 수 있다.
+
+- 서버 소켓으로 읽기 이벤트 발생 
+
+``` c++
+if (events[i].filter == EVFILT_READ && CheckValidServer(events[i].ident))
+{
+    int 				sock_client;
+    struct sockaddr_in	addr_client;
+    if (InitClientSocket(kq, sock_serv, change_event, sock_client, addr_client, sizeof(addr_client)) == false)
+        continue ;
+    Connection *con = new Connection(kq, sock_client, addr_client, config, &session);
+    v_connection.push_back(con);
+    AddConnectionMap(sock_client, v_connection.back());
+}
+
+```
+
+서버 소켓으로 읽기 이벤트가 발생했다면 클라이언트에서 새로운 연결을 요청한 것이기 때문에, accept() 함수를 통해 클라이언트 소켓을 생성하고 앞에서 서버 소켓의 옵션을 설정해줬던 것처럼 동일하게 진행 후, kquque에 등록해준다. 클라이언트 소켓 생성 시 Connection이라는 객체를 만들어, 클라이언트의 연결과 관련된 정보를 관리한다. 이를 std::map에 <fd, Connection*>로 저장해 request, response를 처리할 때 사용했다.
+
+- 클라이언트 소켓 이벤트 발생
+
+``` c++
+// if Client Socket Event
+{
+    if (connectionmap.find(static_cast<int>(events[i].ident)) == connectionmap.end())
+        continue;
+    Connection* connection = connectionmap[static_cast<int>(events[i].ident)];
+    connection->MainProcess(events[i]);
+    connection->UpdateTimeval();
+    AfterProcess(connection);
+}
+
+```
+
+클라이언트 소켓 이벤트 발생 시, request에 대한 적절한 response를 만들어 클라이언트에게 보낸다. 이에 관한 부분은 따로 자세히 포스트로 다룰 예정이다.
+
+
+- 나머지 경우
+
+이미 클라이언트의 요청을 처리했지만, 알 수 없는 이유로 계속 요청이 들어오는 경우가 있었다. 이 경우에 EV_EOF 플래그가 켜졌었는데, 이 경우에 연결을 정상적으로 끊을 수 있게 처리해주었다. 나중에 알고보니 Connection을 keep-alive로 구현하지 않아 생긴 문제였는데, keep-alive로 수정 후에는 EV_EOF 플래그가 켜지지 않았다. 코드는 따로 첨부하지 않겠다.
+
+⸻
+
+#### 서버가 끊어지면 모든 자원 정리
+
+``` c++
+void	ServerManager::CloseAllConnection()
+{
+	for (size_t i = 0; i < v_connection.size(); ++i)
+	{
+		if (v_connection[i]->GetFileFd())
+		{
+			CloseConnectionMap(v_connection[i]->GetFileFd());
+			v_connection[i]->SetFileFd(0);
+		}
+		else if (v_connection[i]->GetPipein())
+		{
+			CloseConnectionMap(v_connection[i]->GetPipein());
+			v_connection[i]->SetPipein(0);
+		}
+		else if (v_connection[i]->GetPipeout())
+		{
+			CloseConnectionMap(v_connection[i]->GetPipeout());
+			v_connection[i]->SetPipeout(0);
+		}
+		CloseVConnection(v_connection[i]->GetClientSocketFd());
+	}
+	close(kq);
+	v_connection.clear();
+	connectionmap.clear();
+}
+```
+
+서버가 종료됐을 때 보관하고 있는 Connection, 연관된 자원들을 모두 정리하고 프로그램을 종료한다.
+
+## 마무리
+지금까지 kqueue를 활용한 I/O Multiplexing 방식의 서버 구현 흐름을 하나씩 살펴보았다.
+단순히 동작하는 서버를 만드는 것을 넘어, 운영체제의 이벤트 기반 시스템 콜이 어떻게 작동하는지 이해하고, 소켓을 어떻게 효율적으로 관리할 수 있는지 체계적으로 정리해보았다.
+
+다음 포스트에서는 이 구조를 기반으로 실제 클라이언트의 요청(Request)을 분석하고, 적절한 응답(Response)을 생성해주는 HTTP 처리 로직에 대해 이야기해보려고 한다. 또한 설정 파일을 기반으로 어떻게 서버가 생성되는지에 대해 설명할 것이다.
