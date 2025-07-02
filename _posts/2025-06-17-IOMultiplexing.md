@@ -316,7 +316,7 @@ if (events[i].filter == EVFILT_READ && CheckValidServer(events[i].ident))
 
 ```
 
-서버 소켓으로 읽기 이벤트가 발생했다면 클라이언트에서 새로운 연결을 요청한 것이기 때문에, accept() 함수를 통해 클라이언트 소켓을 생성하고 앞에서 서버 소켓의 옵션을 설정해줬던 것처럼 동일하게 진행 후, kquque에 등록해준다. 클라이언트 소켓 생성 시 Connection이라는 객체를 만들어, 클라이언트의 연결과 관련된 정보를 관리한다. 이를 std::map에 <fd, Connection*>로 저장해 request, response를 처리할 때 사용했다.
+서버 소켓으로 읽기 이벤트가 발생했다면 클라이언트에서 새로운 연결을 요청한 것이기 때문에, accept() 함수를 통해 클라이언트 소켓을 생성하고 앞에서 서버 소켓의 옵션을 설정해줬던 것처럼 동일하게 진행 후, kqueue에 등록해준다. 클라이언트 소켓 생성 시 Connection이라는 객체를 만들어, 클라이언트의 연결과 관련된 정보를 관리한다. 이를 std::map에 <fd, Connection*>로 저장해 request, response를 처리할 때 사용했다.
 
 - 클라이언트 소켓 이벤트 발생
 
