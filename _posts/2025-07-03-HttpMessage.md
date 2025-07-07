@@ -3,7 +3,7 @@ title: Http Request & Response handling in Webserv + Config
 tags: [Network, Http]
 style: fill
 color: primary
-description: Webserv(nginx) Project의 핵심 구현부에 대한 설명.
+description: Webserv(nginx) Project의 구현부에 대한 설명.
 ---
 
 ## 도입
@@ -24,23 +24,23 @@ server {
 	listen			80;
 	server_name		localhost;
 
-	error_page			404				./usr/html/error.html;
+	error_page		404		./usr/html/error.html;
 
-	#file upload path
-	filepath	./usr/html/upload;
+	#file upload 	path
+	filepath		./usr/html/upload;
 
 	location / {
 		limit_except		GET POST DELETE;
-		# return			301 http://naver.com;
-		cgi					php:./usr/cgi/upload.php  bla:./usr/cgi/upload.bla py:./usr/cgi/get_script.py;
+		# return		301 http://naver.com;
+		cgi			php:./usr/cgi/upload.php  bla:./usr/cgi/upload.bla py:./usr/cgi/get_script.py;
 		client_body_size 	110000000;
-		root				./usr/html;
-		index				index.html;
-		autoindex			ON;
+		root			./usr/html;
+		index			index.html;
+		autoindex		ON;
 	}
 	location /cgi {
-		cgi					php:./usr/cgi/upload.php  bla:./usr/cgi/cgi_tester py:./usr/cgi/get_script.py;
-		root	./usr/cgi;
+		cgi			php:./usr/cgi/upload.php  bla:./usr/cgi/cgi_tester py:./usr/cgi/get_script.py;
+		root. 	./usr/cgi;
 	}
 }
 
@@ -284,8 +284,7 @@ Status Locate::ParseLocateBlock(std::string& locate_block)
 
 이렇게 파싱을 마치고 나면, Config라는 클래스 안에 필요한 정보가 모두 들어있게 된다. 이후에는 ServerManager에서 Config의 Server block 정보를 바탕으로 서버 소켓을 생성하게 된다. 그리고 클라이언트의 request를 location block의 정보를 바탕으로 처리할 수 있게 된다.
 
-## Http Message
-클라이언트의 request, 서버의 response를 설명하기 전에 Http 메시지에 대해 먼저 설명하고 넘어가겠다. 
+## Http Message 
 Http 메시지는 단순한, 데이터의 구조화된 블록이다. 메시지는 시작줄, 헤더 블록, 본문 이렇게 세 부분으로 이루어진다. 시작줄은 이것이 어떤 메시지인지 서술하며, 헤더 블록은 속성을, 본문은 데이터를 담고 있다. 
 
 ![http message](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FceqzRL%2FbtrFHEJFUZb%2FAAAAAAAAAAAAAAAAAAAAANG-cLHTNU3CTXaw5CPcQT7NThXHpO43yQwP64pC5N57%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1753973999%26allow_ip%3D%26allow_referer%3D%26signature%3DBQJrez2SPYo7sYI1tg1ouAn2ii0%253D)
@@ -296,7 +295,7 @@ Http 메시지는 단순한, 데이터의 구조화된 블록이다. 메시지�
 
 Http 메시지는 요청 메시지와 응답 메시지로 분류 된다.
 
-#### 요청 메시지
+### 요청 메시지
 
 ```
 <메서드> <요청 URL> <버전>
@@ -305,7 +304,35 @@ Http 메시지는 요청 메시지와 응답 메시지로 분류 된다.
 <본문>
 ```
 
-#### 응답 메시지
+#### 시작줄
+
+- 메서드: 클라이언트 측에서 서버가 리소스에 대해 수행해주길 바라는 동작. 'GET', 'POST', 'DELETE' 등과 같이 한 단어로 되어 있다. 
+- 요청 URL: 요청 대상이 되는 리소스를 지칭하는 완전한 URL 혹은 URL의 경로 구성요소이다. 
+- 버전: 메시지에서 사용 중인 Http 버전이다.
+
+간단하게 얘기하면 클라이언트가 서버에게 리소스에 대해 무언가를 해달라고 부탁하는 것이다. 
+
+#### 헤더
+클라이언트의 요청에 대한 부가 정보들이다. 주로 사용되는 헤더들은 다음과 같다.
+
+- Host: 요청 대상 서버의 도메인과 포트
+- User-Agent: 클라이언트(브라우저/앱)의 이름, 버전, OS 정보 등
+- Accept: 클라이언트가 처리할 수 있는 MIME 타입(text/html, application/json)
+- Accept-Language: 선호하는 언어
+- Accept-Encoding: 지원하는 압축 방식
+- Connection: 연결 관리(keep-alive, close)
+- Content-Type: 전송하는 데이터 타입(application/json, multipart/form-data 등)
+- Content-Length: 본문 길이
+- Referer: 현재 요청의 출처 URL
+- Authorization: 인증 정보
+- Cookie: 서버가 이전에 설정한 쿠키 값
+- Transfer-Encoding: 본문 데이터를 어떻게 전송할지에 대한 규약
+
+#### 본문
+요청 메시지에는 대부분 본문이 없지만, POST, PUT 메서드에는 본문이 포함된다.
+
+
+### 응답 메시지
 
 ```
 <버전> <상태 코드> <사유 구절>
@@ -314,9 +341,38 @@ Http 메시지는 요청 메시지와 응답 메시지로 분류 된다.
 <본문>
 ```
 
-각 부분에 대한 설명은 다음과 같다.
+#### 시작줄
 
-- 메서드: 클라이언트 측에서 서버가 리소스에 대해 수행해주길 바라는 동작. 'GET', 'POST', 'DELETE' 등과 같이 한 단어로 되어 있다. 
-- 요청 URL: 요청 대상이 되는 리소스를 지칭하는 완전한 URL 혹은 URL의 경로 구성요소이다. 
-- 버전: 메시지에서 사용 중인 Http 버전이다. 
-- 상태 코드: 요청 중에 무엇이 일어났는지 설명하는 세 자리 숫자이다.  
+- 버전: 메시지에서 사용 중인 Http 버전이다.
+- 상태 코드: 요청 중에 무엇이 일어났는지 설명하는 세 자리 숫자이다. 200 번대는 성공, 300번대는 리소스가 옮겨졌음을 의미, 400번대는 클라이언트 오류, 500번대는 서버 오류를 의미한다.
+- 사유 구절: 상태 코드에 대한 글로 된 설명을 의미한다.
+
+간단하게 말하면 클라이언트의 요청에 대한 결과를 반환한 정보이다.
+
+#### 헤더
+서버의 응답에 대한 부가 정보들이다. 
+
+- Date: 응답이 생성된 날짜와 시간
+- Server: 서버의 이름과 버전
+- Connection: 연결 유지 여부
+- Content-Type: 응답 본문의 MIME 타입
+- Content-Length: 응답 본문의 바이트 길이
+- Transfer-Encoding: 전송 인코딩 방식
+- Content-Encoding: 본문 압축 방식
+- Content-Language: 본문 언어
+- Expires: 응답이 만료되는 시간
+- Set-Cookie: 클라이언트에 쿠키를 설정하는 데 사용
+- Location: 3xx 코드와 함께, 이동할 새 위치를 명시
+
+#### 본문
+이미지, 비디오, HTML 문서 등 다양한 종류의 데이터
+
+## 정리
+웹 서버의 Configuration 파일이 어떤 항목으로 구성되어 있고, 항목에 따라 서버가 어떻게 만들어지는지 설명했다. 또한 request, response 메시지가 각각 어떤 형식으로 구성되어 있고 각 속성 값이 무슨 의미를 지니는지 간단하게 설명했다.
+
+원래는 Http 메시지에 대해서 어떻게 파싱했고, 어떻게 응답을 생성했는지 자세하게 설명하려고 했다. 근데 이 프로젝트를 진행한지 1년이 넘어 잘 기억이 나지 않는 부분도 있고, 내가 구현하지 않은 부분에 대한 설명을 하는 것이 맞나? 라는 생각이 들었다. 그래서 포스트를 계속 작성하는 것이 어렵겠다는 생각이 들어 여기까지 작성하려고 한다.
+
+앞으로 블로그의 포스트는 프로젝트를 진행하며 작성하는 것이 좋을 것 같다. 좀 더 현장감이 살아나기도 하고, 과거의 기억에 의존해 작성하지 않아도 되기 때문이다. 또한 포스트를 작성하며 생각 정리도 되고, 새로운 영감을 얻을 수도 있을 것 같다.
+
+
+
