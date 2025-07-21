@@ -77,7 +77,7 @@ description: 시뮬레이션 게임 문명6를 개발자 관점에서 분석하�
 
 ![civ6_goodstart](https://cdn.arstechnica.net/wp-content/uploads/2018/02/Civilization-VI-Korea-1536x864.jpg)
 
-<sub> 평지 언덕 스타트 + 주변 언덕 + 석재 + 말 + 사치 자원 + ... -> 선덕에게 완벽한 스타트다.(출처: https://arstechnica.com/gaming/2018/02/civilization-vi-rise-and-fall-review-a-few-turns-closer-to-a-golden-age/) </sub>
+<sub> 평지 언덕 스타트 + 주변 언덕 + 석재 + 말 + 사치 자원 + ... -> 선덕에게 완벽한 스타트다.(출처: [arstechnica](https://arstechnica.com/gaming/2018/02/civilization-vi-rise-and-fall-review-a-few-turns-closer-to-a-golden-age/)) </sub>
 
 ### 2. 테마와 메커니즘의 완벽한 일치
 
@@ -105,7 +105,7 @@ description: 시뮬레이션 게임 문명6를 개발자 관점에서 분석하�
 
 ![civ6_simcity](https://i.redd.it/6eqz3geg88m61.png)
 
-<sub> 턴 당 283.8의 어마어마한 생산력 (출처: https://www.reddit.com/r/civ/comments/m21ddm/germany_simcity_is_now_my_favorite_way_to_play/) </sub>
+<sub> 턴 당 283.8의 어마어마한 생산력 (출처: [Reddit](https://www.reddit.com/r/civ/comments/m21ddm/germany_simcity_is_now_my_favorite_way_to_play/)) </sub>
 
 하지만 플레이어는 이 복잡성에 압도되지 않는다. 왜일까?
 
@@ -149,7 +149,7 @@ description: 시뮬레이션 게임 문명6를 개발자 관점에서 분석하�
 
 ![civ6_boring](https://preview.redd.it/sometimes-i-get-bored-in-the-late-game-v0-el1qgf9tlvj91.jpg?width=640&crop=smart&auto=webp&s=fa622fe1ea24cfaadf8266f952a55e914400a32c)
 
-<sub> 사실상 게임은 끝났지만, 정복 승리를 하려면 다른 도시를 모두 점령해야만 한다... (출처: https://www.reddit.com/r/civ/comments/wxgujj/sometimes_i_get_bored_in_the_lategame/)</sub>
+<sub> 사실상 게임은 끝났지만, 정복 승리를 하려면 다른 도시를 모두 점령해야만 한다... (출처: [Reddit](https://www.reddit.com/r/civ/comments/wxgujj/sometimes_i_get_bored_in_the_lategame/))</sub>
 
 ## 마무리: 내가 만들 게임에 적용하고 싶은 교훈들
 

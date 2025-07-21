@@ -289,7 +289,7 @@ Http 메시지는 단순한, 데이터의 구조화된 블록이다. 메시지�
 
 ![http message](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FceqzRL%2FbtrFHEJFUZb%2FAAAAAAAAAAAAAAAAAAAAANG-cLHTNU3CTXaw5CPcQT7NThXHpO43yQwP64pC5N57%2Fimg.png%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1753973999%26allow_ip%3D%26allow_referer%3D%26signature%3DBQJrez2SPYo7sYI1tg1ouAn2ii0%253D)
 
-<sub>이미지 출처: [https://hahahoho5915.tistory.com/62)</sub>
+<sub>이미지 출처: [tistory](https://hahahoho5915.tistory.com/62)</sub>
 
 시작줄과 헤더는 줄 단위로 분리된 아스키 문자열이다. 각 줄은 /r/n 으로 끝나고, 이 줄바꿈 문자열을 'CRLF'라고 부른다. 본문은 단순한 데이터 덩어리이다. 시작줄이나 헤더와는 달리, 텍스트나 binary 데이터를 포함할 수도 있고, 비어있을 수도 있다. 
 
