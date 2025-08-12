@@ -32,9 +32,9 @@ Mac 사용자로서 컴퓨터에 저장된 사진들로 슬라이드쇼를 만�
 
 5컷짜리 간단한 슬라이드쇼가 순식간에 완성되었다. 복잡한 작업에도 충분히 활용할 수 있겠다는 확신이 들었다.
 
-<details>
-<summary>🎬 Claude Code가 생성한 슬라이드쇼 프로젝트 구조 보기</summary>
+### Claude Code가 생성한 결과물
 
+**생성된 Python 코드 예시:**
 ```python
 # Claude Code가 자동 생성한 슬라이드쇼 코드 일부
 class PhotoSlideshowMaker:
@@ -65,18 +65,13 @@ ClaudeCLI/
 │   └── README.md            # 사용법 문서 자동 생성
 ```
 
-**Claude Code가 작성한 README의 개발 체크리스트:**
-```
-## 개발 단계
+**개발 체크리스트:**
 - [x] 기본 환경 설정
-- [x] 사진 날짜순 정렬
+- [x] 사진 날짜순 정렬  
 - [x] 기본 슬라이드쇼 생성
 - [ ] 배경음악 추가
 - [ ] 전환 효과 추가
 - [ ] 최종 테스트
-```
-
-</details>
 
 놀라운 점은 단순히 코드만 생성한 것이 아니라:
 - **가상환경을 자동으로 설정**하고 필요한 패키지 설치
@@ -128,73 +123,41 @@ Claude 공식 문서에서 Subagent 기능을 발견하고 Unity 프로젝트에
 
 결과는 훨씬 나아졌다. 원하는 기능을 정확히 구현했고, 테스트 방법까지 단계별로 안내받아 **3일 만에** 게임의 핵심 기능을 완성할 수 있었다.
 
-<details>
-<summary>📝 실제 사용한 Game Development Agent 프롬프트 보기</summary>
+### 실제 사용한 Agent 프롬프트
+
+효과적인 Agent 프롬프트 작성의 핵심은 **구체적이고 제한적인 역할 정의**였다:
 
 ```
 name: game-development-agent
-description: Unity Mobile Game - My Sweet Bakery
+description: Unity Mobile Game - Bakery Simulation
 model: sonnet
----
 
-# Unity My Sweet Bakery Game Development Agent
+# Game Development Agent
 
 ## Project Overview
-Develop a "My Sweet Bakery" business simulation game using Unity 2022.3.19f. 
-The player operates a bakery, producing and selling bread while expanding their 
-store in a 3D isometric style mobile game.
+3D 아이소메트릭 베이커리 경영 시뮬레이션 게임
+- Unity 2022.3.19f 기반
+- 모바일 최적화 (Portrait 720x1280)
+- C# 스크립트 개발에만 집중
 
-## Core Game Mechanics
+## Core Systems
+1. Player Movement (Virtual Joystick)
+2. Production System (자동 생산)  
+3. Customer AI (주문, 결제)
+4. Economy System (코인 관리)
+5. UI/UX (HUD, 말풍선)
 
-### 1. Player Movement System
-- Virtual joystick/pad in center of screen (mobile)
-- Automatic task execution when player stands in specific areas
-- Movement, idle, and work state animations
-
-### 2. Production System
-- Bread Machine: Produces 1 bread per second, maximum 8 stored
-- Player Inventory: Can hold maximum 8 bread items
-- Display Case: Can display maximum 8 bread items
-
-### 3. Customer System
-- Customer Spawning: Wait in front of display case
-- Order Display: Speech bubbles showing desired bread quantity
-- Customer Types: Takeout (7 coins) vs Dine-in (10 coins)
-
-### 4. Cashier System
-- Queue Processing: Handle customers in order
-- Money Display: Money stacks in 3×3 grid
-- Collection: Player stands on money to collect automatically
-
-## Technical Architecture
-GameManager (Singleton)
-├── PlayerController
-├── ProductionManager
-├── CustomerManager
-├── EconomyManager
-├── UIManager
-└── InteriorManager
-
-## Development Priority
-Phase 1 (MVP): Basic movement, production, display, customer AI
-Phase 2: Money collection, interior purchase, table service
-Phase 3: Animations, sound, balancing, optimization
-
-## Key Considerations
-- 3D Isometric View with proper camera settings
-- Mobile Optimization for performance
-- Intuitive Touch UI
-- Immediate feedback for all interactions
+## Development Constraints
+- 한 번에 하나의 시스템만 구현
+- 기존 코드와의 연동 우선 고려
+- 모바일 성능 최적화 필수
 ```
-
-</details>
 
 이 프롬프트를 통해 Claude Code는 정확히 내가 원하는 범위 내에서 코드를 생성했고, 게임의 핵심 시스템을 체계적으로 구현할 수 있었다.
 
 ### 실제 개발 성과
 
-<details>
-<summary>📊 3일간의 Unity 게임 개발 통계</summary>
+**3일간의 Unity 게임 개발 통계:**
 
 **프로젝트 구조:**
 ```
@@ -212,51 +175,27 @@ BakeryGame/
 │   └── Utilities/       # 유틸리티 (패스파인딩 등)
 ```
 
-**개발 성과 메트릭:**
-```
-총 코드 라인수: 16,314줄
-생성된 스크립트: 30개
-구현된 핵심 시스템: 9개
+**개발 성과:**
+- 총 코드 라인수: **16,314줄**
+- 생성된 스크립트: **30개**
+- 구현된 핵심 시스템: **9개**
 
-시스템별 구현 현황:
-✅ Player Movement (Virtual Joystick)
-✅ Production System (자동 생산)
-✅ Inventory Management (8개 제한)
-✅ Customer AI (주문, 이동, 결제)
-✅ Economy System (코인 수집)
-✅ Display System (빵 진열)
-✅ Cashier System (결제 처리)
-✅ Interior Expansion (가구 구매)
+**완성된 시스템들:**
+✅ Player Movement (Virtual Joystick)  
+✅ Production System (자동 생산)  
+✅ Inventory Management (8개 제한)  
+✅ Customer AI (주문, 이동, 결제)  
+✅ Economy System (코인 수집)  
+✅ Display System (빵 진열)  
+✅ Cashier System (결제 처리)  
+✅ Interior Expansion (가구 구매)  
 ✅ UI/UX (HUD, 말풍선, 튜토리얼)
 
-자동화된 작업:
+**자동화된 작업들:**
 - NavMesh 설정 및 경로 찾기
-- 애니메이션 컨트롤러 연결
+- 애니메이션 컨트롤러 연결  
 - 이벤트 시스템 구축
 - 오브젝트 풀링 최적화
-```
-
-**시스템 아키텍처 플로우:**
-```
-[GameManager]
-    ├─→ [PlayerController] ←→ [VirtualJoystick]
-    │       ↓
-    │   [PlayerInventory]
-    │       ↓
-    ├─→ [ProductionSystem] → [BreadMachine]
-    │       ↓
-    │   [DisplayCase]
-    │       ↓
-    ├─→ [CustomerManager] → [Customer AI]
-    │       ↓
-    │   [CashierSystem] → [Payment]
-    │       ↓
-    ├─→ [EconomyManager] → [MoneyDisplay]
-    │       ↓
-    └─→ [UIManager] → [SpeechBubble, HUD, Tutorial]
-```
-
-</details>
 
 Claude Code의 가장 인상적인 점은 **단순히 코드를 생성하는 것이 아니라**, 전체 시스템 간의 연결과 상호작용까지 고려해서 구현했다는 것이다. 특히 Customer AI가 DisplayCase의 상태를 확인하고, CashierSystem과 연동되며, MoneyManager를 통해 경제 시스템과 통합되는 과정이 자연스럽게 구현되었다.
 
