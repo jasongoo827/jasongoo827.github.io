@@ -66,7 +66,7 @@ ClaudeCLI/
 ```
 
 **Claude Code가 작성한 README의 개발 체크리스트:**
-```markdown
+```
 ## 개발 단계
 - [x] 기본 환경 설정
 - [x] 사진 날짜순 정렬
@@ -131,7 +131,7 @@ Claude 공식 문서에서 Subagent 기능을 발견하고 Unity 프로젝트에
 <details>
 <summary>📝 실제 사용한 Game Development Agent 프롬프트 보기</summary>
 
-```yaml
+```
 name: game-development-agent
 description: Unity Mobile Game - My Sweet Bakery
 model: sonnet
@@ -213,7 +213,7 @@ BakeryGame/
 ```
 
 **개발 성과 메트릭:**
-```yaml
+```
 총 코드 라인수: 16,314줄
 생성된 스크립트: 30개
 구현된 핵심 시스템: 9개
@@ -287,7 +287,7 @@ Claude Code의 가장 인상적인 점은 **단순히 코드를 생성하는 것
 코드가 길어지면서 시행착오가 늘어나 오히려 생산성이 떨어질 수 있다. 현재 경험을 바탕으로 한 개선 방안:
 
 1. **Agent 역할을 명확하게 제한**
-   ```yaml
+   ```
    game-setup-agent:
      역할: "Unity 프로젝트 초기 설정만"
      제한: "코드 생성 금지, 설정 파일만 수정"
