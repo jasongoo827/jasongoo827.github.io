@@ -181,6 +181,7 @@ BakeryGame/
 - 구현된 핵심 시스템: **9개**
 
 **완성된 시스템들:**
+
 ✅ Player Movement (Virtual Joystick)  
 ✅ Production System (자동 생산)  
 ✅ Inventory Management (8개 제한)  
