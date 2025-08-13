@@ -13,6 +13,9 @@ open_new_tab        : false                    # Opens external URLs in new tab 
 plugins:
   - jemoji
 
+### Google Analytics ###
+google_analytics: G-GNZM4ZG5RT  # 여기에 실제 측정 ID를 넣으세요
+
 
 ### Navbar Settings ###
 nav_exclude:                                            # The following paths are excluded from navbar
