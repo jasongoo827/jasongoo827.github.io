@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link active" href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link " href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <h1 id="기술-블로그-프로젝트">기술 블로그 프로젝트</h1>
+
+<h2 id="프로젝트-개요">프로젝트 개요</h2>
+<p>Jekyll 기반 개인 기술 블로그입니다. 게임 개발, 시스템 설계, AI 도구 활용 등의 주제를 다룹니다.</p>
+
+<h2 id="디렉토리-구조">디렉토리 구조</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gitblog/
+├── _posts/                 # 블로그 포스트 (YYYY-MM-DD-title.md 형식)
+│   ├── 2025-03-24-first-post.md
+│   ├── 2025-07-21-civilization6-game-analysis.md
+│   └── 2025-08-12-claude-code-review.md
+├── _projects/              # 프로젝트 소개 페이지
+│   ├── ALEngine.md
+│   ├── MiniRT.md
+│   ├── Webserv.md
+│   └── RR_Topdown.md
+├── assets/                 # 이미지 및 리소스
+│   ├── *.png              # 포스트용 이미지들
+│   └── favicon.ico
+├── _data/                  # 데이터 파일
+├── _includes/              # 재사용 가능한 컴포넌트
+├── _layouts/               # 레이아웃 템플릿
+├── pages/                  # 정적 페이지
+└── _config.yml            # Jekyll 설정
+
+</code></pre></div></div>
+
+<h2 id="포스트-작성-방법">포스트 작성 방법</h2>
+
+<h3 id="1-파일명-규칙">1. 파일명 규칙</h3>
+<ul>
+  <li>형식: <code class="language-plaintext highlighter-rouge">YYYY-MM-DD-제목.md</code></li>
+  <li>예시: <code class="language-plaintext highlighter-rouge">2025-08-12-claude-code-review.md</code></li>
+</ul>
+
+<h3 id="2-필수-메타데이터-front-matter">2. 필수 메타데이터 (Front Matter)</h3>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s">포스트 제목</span>
+<span class="na">tags</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">태그1</span><span class="pi">,</span> <span class="nv">태그2</span><span class="pi">,</span> <span class="nv">태그3</span><span class="pi">]</span>
+<span class="na">style</span><span class="pi">:</span> <span class="s">fill</span>
+<span class="na">color</span><span class="pi">:</span> <span class="s">info</span>  <span class="c1"># 또는 success, warning, danger 등</span>
+<span class="na">description</span><span class="pi">:</span> <span class="s">포스트 요약 설명 (1-2줄)</span>
+<span class="nn">---</span>
+</code></pre></div></div>
+
+<h3 id="3-포스트-구조-템플릿">3. 포스트 구조 템플릿</h3>
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gu">## 도입</span>
+문제 상황이나 동기 설명
+
+<span class="gu">## 본문 섹션들</span>
+<span class="gu">### 소제목 1</span>
+내용 작성
+
+<span class="gu">### 소제목 2</span>
+내용 작성
+
+<span class="gu">## 결론/마무리</span>
+핵심 요약 및 향후 계획
+</code></pre></div></div>
+
+<h3 id="4-이미지-추가">4. 이미지 추가</h3>
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">![</span><span class="nv">이미지 설명</span><span class="p">](</span><span class="sx">/assets/이미지파일명.png</span><span class="p">)</span>
+<span class="nt">&lt;sub&gt;</span><span class="gs">***이미지 캡션**</span><span class="err">*</span><span class="nt">&lt;/sub&gt;</span>
+</code></pre></div></div>
+
+<h3 id="5-코드-블록">5. 코드 블록</h3>
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">```</span><span class="nl">언어명
+</span><span class="sb">코드 내용</span>
+<span class="p">```</span>
+</code></pre></div></div>
+
+<h2 id="작성-스타일-가이드">작성 스타일 가이드</h2>
+
+<h3 id="톤앤매너">톤앤매너</h3>
+<ul>
+  <li>개발자 관점의 기술적 분석</li>
+  <li>실제 경험 기반의 구체적 사례</li>
+  <li>데이터와 메트릭 활용</li>
+</ul>
+
+<h3 id="주의사항">주의사항</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">&lt;details&gt;</code> 태그 내부에서 언어 지정 코드블록 사용 금지 (렌더링 오류)</li>
+  <li>회사 프로젝트의 민감한 정보 노출 주의</li>
+  <li>이미지는 <code class="language-plaintext highlighter-rouge">/assets/</code> 폴더에 저장</li>
+</ul>
+
+<h3 id="자주-사용하는-태그">자주 사용하는 태그</h3>
+<ul>
+  <li>GameAnalysis, SystemDesign, AI, Claude, Development</li>
+  <li>Unity, Automation, Webserv, GameEngine</li>
+</ul>
+
+<h2 id="로컬-테스트">로컬 테스트</h2>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bundle <span class="nb">exec </span>jekyll serve
+<span class="c"># http://localhost:4000 에서 확인</span>
+</code></pre></div></div>
+
+<h2 id="git-커밋-메시지-규칙">Git 커밋 메시지 규칙</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[Feat]: 새 포스트 추가
+[Fix]: 오타 수정
+[Update]: 기존 포스트 내용 보완
+[Asset]: 이미지 추가
+</code></pre></div></div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

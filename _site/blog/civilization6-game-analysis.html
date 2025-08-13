@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>게임 개발자가 바라본 문명6의 시스템 설계 철학</b></h1>
+
+    <p class="post-metadata text-muted">
+      21 July 2025 -  
+      <b>5 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#gameanalysis">
+          <span class="tag badge badge-pill text-primary border border-primary">GameAnalysis</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#systemdesign">
+          <span class="tag badge badge-pill text-primary border border-primary">SystemDesign</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#civilization">
+          <span class="tag badge badge-pill text-primary border border-primary">Civilization</span>
+        </a>
+        </p>
+
+    <h2 id="도입">도입</h2>
+
+<p>게임 개발자로서 다양한 게임을 플레이하며 “이 게임은 어떻게 이런 재미를 만들어냈을까?”라는 질문을 자주 하게 된다. 특히 문명6는 내가 가장 좋아하는 게임 중 하나로, 수백 시간을 플레이하면서도 질리지 않는 마력을 가지고 있다. 오늘은 개발자 관점에서 문명6가 어떤 시스템 설계 철학을 가지고 있는지, 그리고 내가 왜 이 게임에 매료되는지를 분석해보려고 한다.</p>
+
+<p><img src="/assets/civ6_playtime.png" alt="civ6_playtime" />
+<sub> <strong><em>아직 1500시간 밖에 못한 문린이다..!</em></strong> </sub></p>
+
+<h2 id="개인적으로-문명6에서-느끼는-재미-요소들">개인적으로 문명6에서 느끼는 재미 요소들</h2>
+
+<p>먼저 내가 문명6에서 어떤 재미를 느끼는지 정리해보자:</p>
+
+<ol>
+  <li>
+    <p><strong>운명적인 시작</strong>: 스타트 위치가 게임 전체를 좌우하는 중요한 요소. 좋은 스타트가 나오면 느끼는 희열감이 어마어마하다.</p>
+  </li>
+  <li>
+    <p><strong>역사적 몰입감</strong>: 각 문명의 배경이 실제 역사와 연결되어 있어 몰입도가 높다.</p>
+  </li>
+  <li>
+    <p><strong>압도적 우위의 쾌감</strong>: 과학 기술을 앞서 나가, 시대 차이로 적을 압도할 때의 재미.</p>
+  </li>
+  <li>
+    <p><strong>도시 건설의 퍼즐</strong>: 건물과 불가사의를 효율적으로 배치해서 최대 효과를 얻는 전략적 재미.</p>
+  </li>
+  <li>
+    <p><strong>문화 승리의 성취감</strong>: 관광을 통해 다른 문명을 문화적으로 압도하는 느낌.</p>
+  </li>
+  <li>
+    <p><strong>역사 패러독스</strong>: 실제로는 역사상 강대국이 아니었던 문명이 게임에서는 최고 문명이 되는 반전의 재미.</p>
+  </li>
+  <li>
+    <p><strong>매판 새로운 재미</strong>: 매판 새로운 맵, 문명이 배치되고 이전과 다른 시대적 상황이 연출되어 다른 재미를 느낄 수 있음.</p>
+  </li>
+</ol>
+
+<p><img src="https://preview.redd.it/y75eiz8x2zz21.jpg?width=1080&amp;crop=smart&amp;auto=webp&amp;s=b5b136d00600d1a47e58fc39c88ed6d99b8c8ef1" alt="civ6_beautyimage" /></p>
+
+<p><sub> <strong><em>정말 아름다운 광경이다..</em></strong> </sub></p>
+
+<h2 id="문명6의-기초적인-게임-흐름">문명6의 기초적인 게임 흐름</h2>
+
+<p>문명6는 턴제 4X 전략 게임(eXplore, eXpand, eXploit, eXterminate)으로, 플레이어는 하나의 문명을 이끌고 다음과 같은 흐름으로 게임을 진행한다:</p>
+
+<h3 id="초기-탐험-단계-고대-시대">초기 탐험 단계 (고대 시대)</h3>
+<ul>
+  <li>정착민으로 첫 도시 건설</li>
+  <li>주변 지역 탐험 및 자원 파악</li>
+  <li>기초 기술 연구 및 정부 정책 선택</li>
+</ul>
+
+<h3 id="확장-단계-고전--중세-시대">확장 단계 (고전 ~ 중세 시대)</h3>
+<ul>
+  <li>추가 도시 건설을 통한 영토 확장</li>
+  <li>다른 문명과의 첫 만남 및 외교 관계 구축</li>
+  <li>군사력 확충 및 방어/공격 준비</li>
+</ul>
+
+<h3 id="전문화-단계-르네상스--산업-시대">전문화 단계 (르네상스 ~ 산업 시대)</h3>
+<ul>
+  <li>승리 조건에 따른 전략 결정 (과학, 문화, 종교, 정복, 외교)</li>
+  <li>불가사의 건설 및 위대한 인물 활용</li>
+  <li>국제 정치 및 무역 네트워크 구축</li>
+</ul>
+
+<h3 id="완성-단계-현대--미래-시대">완성 단계 (현대 ~ 미래 시대)</h3>
+<ul>
+  <li>선택한 승리 조건을 향한 최종 스퍼트</li>
+  <li>다른 문명과의 치열한 경쟁</li>
+  <li>게임 승리 또는 새로운 게임 시작</li>
+</ul>
+
+<h2 id="개발자-관점에서-본-문명6의-시스템-설계">개발자 관점에서 본 문명6의 시스템 설계</h2>
+
+<h3 id="1-운과-전략의-절묘한-균형">1. 운과 전략의 절묘한 균형</h3>
+
+<p><strong>설계 철학</strong>: 초기 운의 중요성과 전략적 깊이의 공존</p>
+
+<p>문명6의 가장 인상적인 부분은 <strong>운과 전략의 균형</strong>이다. 시작 위치는 완전한 운이지만, 주어진 환경에서 최적의 선택을 하는 것은 온전히 플레이어의 전략이다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>좋은 스타트 = 높은 잠재력
+하지만 잠재력 실현 = 플레이어의 전략적 선택
+</code></pre></div></div>
+
+<p>이는 게임 설계에서 중요한 교훈을 준다. <strong>완전한 공정성보다는 다양성과 재플레이성이 더 중요할 수 있다</strong>는 것이다. 매번 같은 시작 조건이라면 최적해가 고정되어 버리지만, 운의 요소가 있으면 매번 새로운 전략을 고민하게 된다.</p>
+
+<p><img src="https://cdn.arstechnica.net/wp-content/uploads/2018/02/Civilization-VI-Korea-1536x864.jpg" alt="civ6_goodstart" /></p>
+
+<p><sub> 평지 언덕 스타트 + 주변 언덕 + 석재 + 말 + 사치 자원 + … -&gt; 선덕에게 완벽한 스타트다.(출처: <a href="https://arstechnica.com/gaming/2018/02/civilization-vi-rise-and-fall-review-a-few-turns-closer-to-a-golden-age/">arstechnica</a>) </sub></p>
+
+<h3 id="2-테마와-메커니즘의-완벽한-일치">2. 테마와 메커니즘의 완벽한 일치</h3>
+
+<p><strong>설계 철학</strong>: 역사적 맥락이 게임 메커니즘을 정당화</p>
+
+<p>오스만 제국의 예니체리, 이집트의 스핑크스, 일본의 사무라이 등은 단순한 스킨 변경이 아니다. 각각의 고유 유닛과 건물들이 <strong>실제 역사적 배경과 일치하는 게임플레이 특성</strong>을 가지고 있다.</p>
+
+<p>예를 들어:</p>
+<ul>
+  <li>오스만의 예니체리: 화약 유닛의 강력함 (실제 역사에서 화약 기술의 우위)</li>
+  <li>바빌론의 과학 보너스: 고대 메소포타미아의 수학/천문학 발달</li>
+  <li>네덜란드의 무역 보너스: 실제 해양 무역 강국의 역사</li>
+</ul>
+
+<p>이는 <strong>테마가 단순한 장식이 아니라 게임플레이의 핵심</strong>이 되어야 한다는 교훈을 준다.</p>
+
+<h3 id="3-복잡성의-우아한-관리">3. 복잡성의 우아한 관리</h3>
+
+<p><strong>설계 철학</strong>: 복잡한 시스템을 직관적인 인터페이스로 단순화</p>
+
+<p>문명6는 엄청나게 복잡한 시스템들이 상호작용한다:</p>
+<ul>
+  <li>기술 트리와 문화 트리</li>
+  <li>자원 관리 (식량, 생산력, 과학, 문화, 신앙, 금)</li>
+  <li>도시 건설과 지형 보너스</li>
+  <li>외교와 국제 정치</li>
+  <li>군사 전략과 전투 시스템</li>
+</ul>
+
+<p><img src="https://i.redd.it/6eqz3geg88m61.png" alt="civ6_simcity" /></p>
+
+<p><sub> 턴 당 283.8의 어마어마한 생산력 (출처: <a href="https://www.reddit.com/r/civ/comments/m21ddm/germany_simcity_is_now_my_favorite_way_to_play/">Reddit</a>) </sub></p>
+
+<p>하지만 플레이어는 이 복잡성에 압도되지 않는다. 왜일까?</p>
+
+<ol>
+  <li>
+    <p><strong>점진적 복잡성</strong>: 게임 초기에는 간단한 선택만 주어지고, 시대가 발전하면서 점점 더 복잡한 옵션이 열린다.</p>
+  </li>
+  <li>
+    <p><strong>명확한 피드백</strong>: 모든 선택에 대해 즉각적이고 명확한 결과를 보여준다.</p>
+  </li>
+  <li>
+    <p><strong>의미 있는 선택</strong>: 모든 옵션이 나름의 가치를 가지고 있어 정답이 하나로 고정되지 않는다.</p>
+  </li>
+</ol>
+
+<h3 id="4-다층적-목표-시스템">4. 다층적 목표 시스템</h3>
+
+<p><strong>설계 철학</strong>: 단기/중기/장기 목표의 유기적 연결</p>
+
+<p>문명6의 목표 시스템은 여러 층위로 구성되어 있다:</p>
+
+<ul>
+  <li><strong>즉시 목표</strong>: 다음 턴에 할 일 (유닛 이동, 건물 건설)</li>
+  <li><strong>단기 목표</strong>: 몇 턴 내 달성 (기술 연구, 불가사의 완성)</li>
+  <li><strong>중기 목표</strong>: 한 시대 내 달성 (도시 확장, 군사 작전)</li>
+  <li><strong>장기 목표</strong>: 게임 승리 (과학, 문화, 정복, 종교, 외교 승리)</li>
+</ul>
+
+<p>이 구조는 플레이어가 <strong>항상 할 일이 있도록</strong> 만들어준다. 지루한 순간이 없고, 모든 행동이 더 큰 목표와 연결되어 있다는 느낌을 준다.</p>
+
+<h2 id="문명6의-아쉬운-점">문명6의 아쉬운 점</h2>
+
+<p>완벽해 보이는 문명6도 개발자 관점에서 아쉬운 부분들이 있다:</p>
+
+<h3 id="1-ai의-한계">1. AI의 한계</h3>
+<ul>
+  <li>AI가 인간 플레이어만큼 전략적이지 못함</li>
+  <li>특히 외교에서 일관성 없는 행동을 보임</li>
+  <li>고난이도에서는 단순한 수치 보정으로 난이도를 높임</li>
+</ul>
+
+<h3 id="2-후반부-게임의-지루함">2. 후반부 게임의 지루함</h3>
+<ul>
+  <li>초반의 탐험과 확장의 흥미진진함이 후반에는 사라짐</li>
+  <li>승리가 확정된 후에도 게임이 계속되는 경우가 많음</li>
+  <li>턴당 처리할 일이 너무 많아져서 피로감 증가</li>
+</ul>
+
+<h3 id="3-밸런싱-이슈">3. 밸런싱 이슈</h3>
+<ul>
+  <li>일부 문명이 특정 승리 조건에서 압도적으로 강함</li>
+  <li>지형 운에 따른 게임 결과의 편차가 너무 큼</li>
+  <li>멀티플레이에서는 게임 시간이 너무 오래 걸림</li>
+</ul>
+
+<p><img src="https://preview.redd.it/sometimes-i-get-bored-in-the-late-game-v0-el1qgf9tlvj91.jpg?width=640&amp;crop=smart&amp;auto=webp&amp;s=fa622fe1ea24cfaadf8266f952a55e914400a32c" alt="civ6_boring" /></p>
+
+<p><sub> 사실상 게임은 끝났지만, 정복 승리를 하려면 다른 도시를 모두 점령해야만 한다… (출처: <a href="https://www.reddit.com/r/civ/comments/wxgujj/sometimes_i_get_bored_in_the_lategame/">Reddit</a>)</sub></p>
+
+<h2 id="마무리-내가-만들-게임에-적용하고-싶은-교훈들">마무리: 내가 만들 게임에 적용하고 싶은 교훈들</h2>
+
+<p>문명6를 분석하면서 내가 게임 개발에 적용하고 싶은 원칙들을 정리해보면:</p>
+
+<h3 id="1-의미-있는-선택의-중요성">1. 의미 있는 선택의 중요성</h3>
+<p>플레이어의 모든 선택이 게임에 실질적인 영향을 미쳐야 한다. 정답이 하나로 고정되지 않도록 각 선택지가 고유한 가치를 가져야 한다.</p>
+
+<h3 id="2-테마와-메커니즘의-일치">2. 테마와 메커니즘의 일치</h3>
+<p>게임의 주제와 배경이 단순한 장식이 아니라 게임플레이의 핵심이 되어야 한다. 플레이어가 게임 세계에 몰입할 수 있도록 모든 요소가 일관성을 가져야 한다.</p>
+
+<h3 id="3-복잡성의-점진적-도입">3. 복잡성의 점진적 도입</h3>
+<p>복잡한 시스템도 처음에는 간단하게 시작해서 점차 깊이를 더해가야 한다. 플레이어가 압도되지 않으면서도 깊이 있는 전략을 구사할 수 있어야 한다.</p>
+
+<h3 id="4-다층적-만족감">4. 다층적 만족감</h3>
+<p>즉시 만족감부터 장기적 성취감까지, 다양한 시간 축에서 플레이어에게 보상을 제공해야 한다.</p>
+
+<p>앞으로도 이런 식으로 내가 좋아하는 게임들을 개발자 관점에서 분석해보려고 한다. 좋은 게임을 많이 플레이하고 분석하는 것이 좋은 게임을 만드는 첫걸음이라고 생각한다.</p>
+
+<p>게임을 만드는 것은 결국 플레이어에게 재미있는 경험을 선사하는 것이다. 문명6에서 배운 이런 설계 철학들을 바탕으로, 언젠가는 많은 사람들이 즐길 수 있는 게임을 만들어보고 싶다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

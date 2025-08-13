@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>Game Engine Architecture - ECS</b></h1>
+
+    <p class="post-metadata text-muted">
+      14 April 2025 -  
+      <b>16 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#game-engine">
+          <span class="tag badge badge-pill text-primary border border-primary">Game Engine</span>
+        </a>
+        </p>
+
+    <h2 id="entity-component-system">Entity Component System</h2>
+
+<p>지난 포스트는 ALEngine의 입력 이벤트 시스템에 대해 글을 썼었다. 오늘은 ALEngine의 아키텍처 패턴인 Entity Component System에 대한 포스트를 적으려고 한다.</p>
+
+<p>게임이나 복잡한 시뮬레이션 시스템을 개발하다 보면, 수많은 객체들이 서로 다른 행동과 상태를 가져야 할 때가 있다. 처음에는 상속과 다형성으로 구조를 짜기 시작하지만, 시간이 지날수록 클래스의 계층이 복잡해지고 비슷한 기능을 가진 객체들이 서로 얽히면서 유지보수가 어려워진다.</p>
+
+<p>이런 문제를 해결하기 위한 방안으로 ECS(Entity Component System) 패턴을 사용할 수 있다. ECS는 객체의 상태(Component)와 행동(System)을 분리함으로써 코드의 유연성과 재사용성을 극대화하고, 데이터 중심으로 설계되어 성능까지 챙길 수 있는 구조다. 이번 포스트에서는 OOP 방식이 가진 구조적 한계를 짚어보고, ECS가 어떻게 그것을 해결하며, 실제로 어떤 방식으로 구성되고 동작하는지 살펴보려고 한다. 또한 ALEngine에서 ECS를 어떻게 활용했는지에 대해 설명할 것이다.</p>
+
+<h2 id="oop와-ecs의-비교">OOP와 ECS의 비교</h2>
+<p>전통적인 객체지향(OOP) 방식에서는 객체가 상태(state)와 행동(behavior)을 함께 갖는다.<br />
+예를 들어 <code class="language-plaintext highlighter-rouge">Player</code> 클래스는 <code class="language-plaintext highlighter-rouge">position</code>, <code class="language-plaintext highlighter-rouge">health</code> 같은 상태와 <code class="language-plaintext highlighter-rouge">Move()</code>, <code class="language-plaintext highlighter-rouge">Attack()</code> 같은 메서드를 동시에 포함한다.</p>
+
+<h3 id="oop-구조-예시">OOP 구조 예시</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Player</span> <span class="p">{</span>
+    <span class="n">Vector2</span> <span class="n">position</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">health</span><span class="p">;</span>
+
+    <span class="kt">void</span> <span class="n">Move</span><span class="p">(</span><span class="n">Vector2</span> <span class="n">direction</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">position</span> <span class="o">+=</span> <span class="n">direction</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kt">void</span> <span class="n">TakeDamage</span><span class="p">(</span><span class="kt">int</span> <span class="n">damage</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">health</span> <span class="o">-=</span> <span class="n">damage</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>이 방식은 소규모 프로젝트에서는 직관적이고 빠르게 구현할 수 있지만,
+규모가 커질수록 클래스 간 상속 관계가 복잡해지고, 중복 코드가 늘어나 유지보수가 어려워진다.</p>
+
+<h3 id="ecs방식은-어떻게-다를까">ECS방식은 어떻게 다를까?</h3>
+<p>ECS에서는 객체(Entity)는 단순한 ID일 뿐이며, 상태는 Component로, 행동은 System으로 분리된다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Component 구조체 정의</span>
+<span class="k">struct</span> <span class="nc">Position</span> <span class="p">{</span>
+    <span class="kt">float</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nc">Velocity</span> <span class="p">{</span>
+    <span class="kt">float</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// Entity 구조 예시</span>
+<span class="k">struct</span> <span class="nc">Entity</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+    <span class="n">Position</span><span class="o">*</span> <span class="n">position</span><span class="p">;</span>
+    <span class="n">Velocity</span><span class="o">*</span> <span class="n">velocity</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// System 함수: 상태를 바꿈</span>
+<span class="kt">void</span> <span class="n">MovementSystem</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Entity</span><span class="o">&gt;&amp;</span> <span class="n">entities</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span><span class="o">&amp;</span> <span class="n">e</span> <span class="o">:</span> <span class="n">entities</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">e</span><span class="p">.</span><span class="n">position</span> <span class="o">&amp;&amp;</span> <span class="n">e</span><span class="p">.</span><span class="n">velocity</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">e</span><span class="p">.</span><span class="n">position</span><span class="o">-&gt;</span><span class="n">x</span> <span class="o">+=</span> <span class="n">e</span><span class="p">.</span><span class="n">velocity</span><span class="o">-&gt;</span><span class="n">dx</span><span class="p">;</span>
+            <span class="n">e</span><span class="p">.</span><span class="n">position</span><span class="o">-&gt;</span><span class="n">y</span> <span class="o">+=</span> <span class="n">e</span><span class="p">.</span><span class="n">velocity</span><span class="o">-&gt;</span><span class="n">dy</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h3 id="unity에서는">Unity에서는?</h3>
+<p>Unity는 최근 DOTS(Data-Oriented Tech Stack)를 통해 ECS 아키텍처를 도입하고 있다.</p>
+
+<div class="language-csharp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Component 예시</span>
+<span class="k">public</span> <span class="k">struct</span> <span class="nc">Position</span> <span class="p">:</span> <span class="n">IComponentData</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="n">float3</span> <span class="n">Value</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="c1">// System 예시</span>
+<span class="k">public</span> <span class="k">partial</span> <span class="k">struct</span> <span class="nc">MovementSystem</span> <span class="p">:</span> <span class="n">ISystem</span> <span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">OnUpdate</span><span class="p">(</span><span class="k">ref</span> <span class="n">SystemState</span> <span class="n">state</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">foreach</span> <span class="p">(</span><span class="kt">var</span> <span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">velocity</span><span class="p">)</span> <span class="k">in</span> <span class="n">SystemAPI</span><span class="p">.</span><span class="n">Query</span><span class="p">&lt;</span><span class="n">RefRW</span><span class="p">&lt;</span><span class="n">Position</span><span class="p">&gt;,</span> <span class="n">RefRO</span><span class="p">&lt;</span><span class="n">Velocity</span><span class="p">&gt;&gt;())</span> <span class="p">{</span>
+            <span class="n">position</span><span class="p">.</span><span class="n">ValueRW</span> <span class="p">+=</span> <span class="n">velocity</span><span class="p">.</span><span class="n">ValueRO</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>기존의 MonoBehaviour 기반 구조보다 훨씬 더 성능 중심적이며,
+수천 개의 오브젝트를 동시에 다뤄야 하는 상황에서 강력한 퍼포먼스를 발휘한다.</p>
+
+<hr />
+
+<h2 id="ecs-성능이-뛰어난-이유-캐시-친화적-구조">ECS 성능이 뛰어난 이유: 캐시 친화적 구조</h2>
+
+<h3 id="sparse-set">Sparse Set</h3>
+<p>ECS는 Sparse set을 이용해 데이터를 캐시 친화적으로 저장해 놓는다.</p>
+
+<p>Sparse Set은 두 개의 배열로 구성된다:</p>
+
+<ul>
+  <li>
+    <p>Sparse Array: 엔티티 ID를 인덱스로 사용하여, 해당 엔티티의 위치를 Dense 배열에서 찾을 수 있도록 한다.​</p>
+  </li>
+  <li>
+    <p>Dense Array: 실제 컴포넌트 데이터를 연속된 메모리 블록에 저장한다.​</p>
+  </li>
+</ul>
+
+<p><img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&amp;fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FcfaeKm%2FbtsJ3rM95rc%2FfkAde6SrSuIKOzZgicoU60%2Fimg.png" alt="Sparse set" /></p>
+
+<p>이 구조를 통해 다음과 같은 성능상의 이점을 얻을 수 있다:​</p>
+
+<ul>
+  <li>조회: 엔티티 ID를 통해 컴포넌트를 빠르게 조회할 수 있다.
+    <div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">bool</span> <span class="n">contained</span> <span class="o">=</span> <span class="p">(</span><span class="n">dense</span><span class="p">[</span><span class="n">sparse</span><span class="p">[</span><span class="n">element</span><span class="p">]]</span> <span class="o">==</span> <span class="n">element</span><span class="p">);</span>
+</code></pre></div>    </div>
+    <hr />
+  </li>
+  <li>추가: O(1)의 시간 복잡도로 요소를 추가할 수 있다.</li>
+</ul>
+
+<p><img src="https://user-images.githubusercontent.com/1812216/89120776-31565080-d4b9-11ea-905c-df3df0d5e7d6.png" alt="Sparse set add1" /></p>
+
+<p><img src="https://user-images.githubusercontent.com/1812216/89120814-65317600-d4b9-11ea-8bbe-a802179d3d3e.png" alt="Sparse set add2" /></p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">const</span> <span class="k">auto</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">dense</span><span class="p">.</span><span class="n">size</span><span class="p">();</span>
+<span class="n">dense</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">element</span><span class="p">);</span>
+<span class="n">sparse</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span><span class="p">;</span>
+</code></pre></div></div>
+<hr />
+<ul>
+  <li>삭제: O(1)의 시간 복잡도로 요소를 삭제할 수 있다.</li>
+</ul>
+
+<p><img src="https://user-images.githubusercontent.com/1812216/89120832-8f833380-d4b9-11ea-9d5f-c798c89c64c7.png" alt="Sparse set delete" /></p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">const</span> <span class="k">auto</span> <span class="n">last</span> <span class="o">=</span> <span class="n">dense</span><span class="p">.</span><span class="n">back</span><span class="p">();</span>
+<span class="n">swap</span><span class="p">(</span><span class="n">dense</span><span class="p">.</span><span class="n">back</span><span class="p">(),</span> <span class="n">dense</span><span class="p">[</span><span class="n">sparse</span><span class="p">[</span><span class="n">element</span><span class="p">]]);</span>
+<span class="n">swap</span><span class="p">(</span><span class="n">sparse</span><span class="p">[</span><span class="n">last</span><span class="p">],</span> <span class="n">sparse</span><span class="p">[</span><span class="n">element</span><span class="p">]);</span>
+<span class="n">dense</span><span class="p">.</span><span class="n">pop_back</span><span class="p">();</span>
+</code></pre></div></div>
+<hr />
+
+<h2 id="alengine의-ecs">ALEngine의 ECS</h2>
+<p>지금까지 ECS를 OOP에 비교해 왜 성능상 좋은지에 대해 설명했다. ALEngine은 Unity 엔진 처럼 구현하는 것이 목표였고, ECS의 성능상 이점을 가져가고자 ECS를 도입했다. EnTT라는 ECS를 잘 구현한 라이브러리를 사용했다. 먼저 객체를 기본적으로 표현할 수 있는 Component들을 정의했다.</p>
+
+<h3 id="component">Component</h3>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * @struct IDComponent
+ * @brief 개체(Entity)의 고유 ID를 저장하는 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">IDComponent</span>
+<span class="p">{</span>
+	<span class="n">UUID</span> <span class="n">m_ID</span><span class="p">;</span>
+
+	<span class="n">IDComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">IDComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">IDComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="cm">/**
+ * @struct TagComponent
+ * @brief 개체(Entity)의 태그(이름) 및 활성 상태를 저장하는 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">TagComponent</span>
+<span class="p">{</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">m_Tag</span><span class="p">;</span>
+	<span class="kt">bool</span> <span class="n">m_isActive</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>	  <span class="c1">// 에디터 상 활성 여부</span>
+	<span class="kt">bool</span> <span class="n">m_selfActive</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span> <span class="c1">// 부모와 관계없이 자신의 활성 여부</span>
+
+	<span class="n">TagComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">TagComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">TagComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">TagComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">tag</span><span class="p">)</span> <span class="o">:</span> <span class="n">m_Tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+	<span class="p">{</span>
+	<span class="p">}</span>
+<span class="p">};</span>
+
+<span class="cm">/**
+ * @struct TransformComponent
+ * @brief 개체의 위치, 회전, 크기 정보를 저장하는 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">TransformComponent</span>
+<span class="p">{</span>
+	<span class="c1">// 속성</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_Position</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">};</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_Rotation</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">};</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_Scale</span> <span class="o">=</span> <span class="p">{</span><span class="mf">1.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">};</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_LastPosition</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">};</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_LastScale</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">};</span>
+
+	<span class="kt">bool</span> <span class="n">m_isMoved</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+	<span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">m_WorldTransform</span> <span class="o">=</span> <span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span><span class="p">(</span><span class="mf">1.0</span><span class="n">f</span><span class="p">);</span>
+
+	<span class="c1">// 생성자</span>
+	<span class="n">TransformComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">TransformComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">TransformComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">TransformComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="o">&amp;</span><span class="n">position</span><span class="p">)</span> <span class="o">:</span> <span class="n">m_Position</span><span class="p">(</span><span class="n">position</span><span class="p">),</span> <span class="n">m_LastPosition</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+	<span class="p">{</span>
+	<span class="p">}</span>
+
+	<span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">getTransform</span><span class="p">()</span> <span class="k">const</span>
+	<span class="p">{</span>
+		<span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">rotation</span> <span class="o">=</span> <span class="n">alglm</span><span class="o">::</span><span class="n">toMat4</span><span class="p">(</span><span class="n">alglm</span><span class="o">::</span><span class="n">quat</span><span class="p">(</span><span class="n">m_Rotation</span><span class="p">));</span>
+
+		<span class="k">return</span> <span class="n">alglm</span><span class="o">::</span><span class="n">translate</span><span class="p">(</span><span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span><span class="p">(</span><span class="mf">1.0</span><span class="n">f</span><span class="p">),</span> <span class="n">m_Position</span><span class="p">)</span> <span class="o">*</span> <span class="n">rotation</span> <span class="o">*</span> <span class="n">alglm</span><span class="o">::</span><span class="n">scale</span><span class="p">(</span><span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span><span class="p">(</span><span class="mf">1.0</span><span class="n">f</span><span class="p">),</span> <span class="n">m_Scale</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="kt">float</span> <span class="n">getMaxScale</span><span class="p">()</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">std</span><span class="o">::</span><span class="n">max</span><span class="p">(</span><span class="n">m_Scale</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">max</span><span class="p">(</span><span class="n">m_Scale</span><span class="p">.</span><span class="n">y</span><span class="p">,</span> <span class="n">m_Scale</span><span class="p">.</span><span class="n">z</span><span class="p">));</span>
+	<span class="p">}</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<p>이 Component들은 Entity가 생성되면 항상 생기는 정보이다. ID는 Entity가 가지고 있는 고유한 uint64 값이다. Tag는 Entity의 이름과 에디터상 활성화 여부에 대한 정보가 담겨있다. Transform은 Entity의 위치, 회전, 크기에 대한 데이터이다.</p>
+
+<p>Component들을 구조체로 구현한 이유는 구조체가 데이터만을 표현하기 위한 적절한 수단이기 때문이다. 물론 TransformComponent를 보면 getTransform이나 getMaxScale같이 데이터들을 기반으로 계산해주는 함수가 있지만, 이는 필요에 의해 만들어진 것이지 결국에 Transform은 데이터 그 자체이다. 구조체 대신 클래스로 구현하면 상속 관계 때문에 메모리 정렬의 예측이 어려워지고, 그러면 ECS의 성능상의 이점을 누릴 수 없게 된다.</p>
+
+<p>이외에 Entity를 렌더링하기 위한 데이터, 물리 연산을 하기 위한 데이터, Entity 간 관계를 정의하는 데이터 등 여러 데이터들을 정의했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * @struct MeshRendererComponent
+ * @brief 메시 렌더링을 위한 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">MeshRendererComponent</span>
+<span class="p">{</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">RenderingComponent</span><span class="o">&gt;</span> <span class="n">m_RenderingComponent</span><span class="p">;</span>
+	<span class="kt">uint32_t</span> <span class="n">type</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">path</span> <span class="o">=</span> <span class="s">""</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">matPath</span> <span class="o">=</span> <span class="s">""</span><span class="p">;</span>
+	<span class="kt">bool</span> <span class="n">isMatChanged</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+	<span class="c1">// Culling</span>
+	<span class="kt">int32_t</span> <span class="n">nodeId</span> <span class="o">=</span> <span class="n">NULL_NODE</span><span class="p">;</span>
+	<span class="n">CullSphere</span> <span class="n">cullSphere</span><span class="p">;</span>
+	<span class="n">ECullState</span> <span class="n">cullState</span><span class="p">;</span>
+
+	<span class="n">MeshRendererComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">MeshRendererComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">MeshRendererComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="nc">RigidbodyComponent</span>
+<span class="p">{</span>
+	<span class="c1">// FLAG</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_FreezePos</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">};</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_FreezeRot</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">};</span>
+
+	<span class="kt">void</span> <span class="o">*</span><span class="n">body</span> <span class="o">=</span> <span class="nb">nullptr</span><span class="p">;</span>
+
+	<span class="cm">/**
+	 * @enum EBodyType
+	 * @brief 리지드바디의 유형을 정의하는 열거형.
+	 */</span>
+	<span class="k">enum</span> <span class="k">class</span> <span class="nc">EBodyType</span>
+	<span class="p">{</span>
+		<span class="n">Static</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+		<span class="n">Dynamic</span><span class="p">,</span>
+		<span class="n">Kinematic</span>
+	<span class="p">};</span>
+	<span class="n">EBodyType</span> <span class="n">m_Type</span> <span class="o">=</span> <span class="n">EBodyType</span><span class="o">::</span><span class="n">Dynamic</span><span class="p">;</span>
+
+	<span class="kt">float</span> <span class="n">m_Mass</span> <span class="o">=</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">;</span>
+	<span class="kt">float</span> <span class="n">m_Damping</span> <span class="o">=</span> <span class="mf">0.001</span><span class="n">f</span><span class="p">;</span>
+	<span class="kt">float</span> <span class="n">m_AngularDamping</span> <span class="o">=</span> <span class="mf">0.001</span><span class="n">f</span><span class="p">;</span>
+	<span class="kt">bool</span> <span class="n">m_UseGravity</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+	<span class="kt">int32_t</span> <span class="n">m_TouchNum</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="n">RigidbodyComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">RigidbodyComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">RigidbodyComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="cm">/**
+ * @struct BoxColliderComponent
+ * @brief 박스 콜라이더 설정을 위한 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">BoxColliderComponent</span>
+<span class="p">{</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_Center</span> <span class="o">=</span> <span class="p">{</span><span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.0</span><span class="n">f</span><span class="p">};</span>
+	<span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="n">m_Size</span> <span class="o">=</span> <span class="p">{</span><span class="mf">1.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">,</span> <span class="mf">1.0</span><span class="n">f</span><span class="p">};</span>
+	<span class="kt">bool</span> <span class="n">m_IsTrigger</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+	<span class="kt">bool</span> <span class="n">m_IsActive</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">ShaderResourceManager</span><span class="o">&gt;</span> <span class="n">m_colliderShaderResourceManager</span><span class="p">;</span>
+
+	<span class="kt">float</span> <span class="n">m_Friction</span> <span class="o">=</span> <span class="mf">0.7</span><span class="n">f</span><span class="p">;</span>
+	<span class="kt">float</span> <span class="n">m_Restitution</span> <span class="o">=</span> <span class="mf">0.4</span><span class="n">f</span><span class="p">;</span>
+
+	<span class="n">BoxColliderComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">BoxColliderComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">BoxColliderComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="cm">/**
+ * @struct RelationshipComponent
+ * @brief 개체 간의 부모-자식 관계를 정의하는 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">RelationshipComponent</span>
+<span class="p">{</span>
+	<span class="n">entt</span><span class="o">::</span><span class="n">entity</span> <span class="n">parent</span> <span class="o">=</span> <span class="n">entt</span><span class="o">::</span><span class="n">null</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">entt</span><span class="o">::</span><span class="n">entity</span><span class="o">&gt;</span> <span class="n">children</span><span class="p">;</span>
+
+	<span class="n">RelationshipComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">RelationshipComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">RelationshipComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<p>Collider 같은 경우는 Collider를 클래스로 추상화하고 Box, Sphere, Capsule, Cylinder가 상속을 받아 구현을 한다면 좋았을 것 같지만 ECS의 원칙에 따라 구조체로 구현했다.</p>
+
+<hr />
+<h3 id="entity">Entity</h3>
+<p>Entity가 자신이 갖고 있는 Component를 효과적으로 관리하기 위해 addComponent, getComponent, hasComponent, removeComponent 등 여러 기능을 추가했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Entity</span>
+<span class="p">{</span>
+    <span class="c1">// ...</span>
+
+	<span class="cm">/**
+	 * @brief 새로운 컴포넌트를 추가합니다.
+	 * @tparam T 추가할 컴포넌트 타입.
+	 * @tparam Args 컴포넌트 생성자에 전달할 인자들.
+	 * @param args 컴포넌트 생성자 인자.
+	 * @return T&amp; 추가된 컴포넌트의 참조.
+	 */</span>
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">,</span> <span class="k">typename</span><span class="o">...</span> <span class="nc">Args</span><span class="p">&gt;</span> <span class="n">T</span> <span class="o">&amp;</span><span class="n">addComponent</span><span class="p">(</span><span class="n">Args</span> <span class="o">&amp;&amp;</span><span class="p">...</span><span class="n">args</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">T</span> <span class="o">&amp;</span><span class="n">component</span> <span class="o">=</span> <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">emplace</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_EntityHandle</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">Args</span><span class="o">&gt;</span><span class="p">(</span><span class="n">args</span><span class="p">)...);</span>
+		<span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">onComponentAdded</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">,</span> <span class="n">component</span><span class="p">);</span>
+		<span class="k">return</span> <span class="n">component</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="cm">/**
+	 * @brief 컴포넌트를 추가하거나 기존 컴포넌트를 교체합니다.
+	 * @tparam T 추가 또는 교체할 컴포넌트 타입.
+	 * @tparam Args 컴포넌트 생성자에 전달할 인자들.
+	 * @param args 컴포넌트 생성자 인자.
+	 * @return T&amp; 추가되거나 교체된 컴포넌트의 참조.
+	 */</span>
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">,</span> <span class="k">typename</span><span class="o">...</span> <span class="nc">Args</span><span class="p">&gt;</span> <span class="n">T</span> <span class="o">&amp;</span><span class="n">addOrReplaceComponent</span><span class="p">(</span><span class="n">Args</span> <span class="o">&amp;&amp;</span><span class="p">...</span><span class="n">args</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">T</span> <span class="o">&amp;</span><span class="n">component</span> <span class="o">=</span> <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">emplace_or_replace</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_EntityHandle</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">forward</span><span class="o">&lt;</span><span class="n">Args</span><span class="o">&gt;</span><span class="p">(</span><span class="n">args</span><span class="p">)...);</span>
+		<span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">onComponentAdded</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">,</span> <span class="n">component</span><span class="p">);</span>
+		<span class="k">return</span> <span class="n">component</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="cm">/**
+	 * @brief 특정 타입의 컴포넌트를 가져옵니다.
+	 * @tparam T 가져올 컴포넌트 타입.
+	 * @return T&amp; 요청된 컴포넌트의 참조.
+	 */</span>
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="n">T</span> <span class="o">&amp;</span><span class="n">getComponent</span><span class="p">()</span>
+	<span class="p">{</span>
+		<span class="c1">// ASSERT HAS COMPONENT</span>
+		<span class="k">return</span> <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_EntityHandle</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="cm">/**
+	 * @brief 특정 타입의 컴포넌트를 제거합니다.
+	 * @tparam T 제거할 컴포넌트 타입.
+	 */</span>
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="kt">void</span> <span class="n">removeComponent</span><span class="p">()</span>
+	<span class="p">{</span>
+		<span class="c1">// ASSERT HAS COMPONENT</span>
+		<span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">remove</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_EntityHandle</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="cm">/**
+	 * @brief 엔티티가 특정 컴포넌트를 가지고 있는지 확인합니다.
+	 * @tparam T 확인할 컴포넌트 타입.
+	 * @return true 컴포넌트를 가지고 있음.
+	 * @return false 컴포넌트를 가지고 있지 않음.
+	 */</span>
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="kt">bool</span> <span class="n">hasComponent</span><span class="p">()</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">all_of</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_EntityHandle</span><span class="p">);</span>
+	<span class="p">}</span>
+
+    <span class="c1">// ...</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<p>Scene의 Registry의 함수들을 사용해 구현했는데, Registry는 entt::registry 라고 EnTT 라이브러리에서 사용하는 EntityID들의 저장소이다. 이를 구현하는 과정에서 까다로웠던 점은 템플릿을 사용해 일반화를 했는데, 생각보다 특수화가 필요한 경우가 많았다. Vulkan 자원을 정리하려면 따로 호출해야하는 함수들이 있었기 때문이다. 자원관리를 어떻게 할지 처음부터 고려하지 않아 생긴 문제였다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+* @brief BoxColliderComponent의 특수화된 삭제 함수.
+*/</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="p">&gt;</span> <span class="kt">void</span> <span class="n">removeComponent</span><span class="o">&lt;</span><span class="n">BoxColliderComponent</span><span class="o">&gt;</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="c1">// ShaderResourceManager 정리 작업 따로!</span>
+    <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">removeColliderShaderResourceManager</span><span class="p">(</span><span class="o">*</span><span class="k">this</span><span class="p">);</span>
+    <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">remove</span><span class="o">&lt;</span><span class="n">BoxColliderComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">m_EntityHandle</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h3 id="system">System</h3>
+<p>Entity 별로 갖고 있는 Component들을 효과적으로 사용하는 System이 필요했다. EnTT의 view 함수를 이용해 Component를 가져왔다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+* @brief 특정 컴포넌트를 가진 모든 엔티티를 가져옵니다.
+* @tparam Components 검색할 컴포넌트들.
+* @return auto 컴포넌트를 가진 엔티티 뷰.
+*/</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span><span class="o">...</span> <span class="nc">Components</span><span class="p">&gt;</span> <span class="k">auto</span> <span class="nf">getAllEntitiesWith</span><span class="p">()</span>
+<span class="p">{</span>
+    <span class="k">return</span> <span class="n">m_Registry</span><span class="p">.</span><span class="n">view</span><span class="o">&lt;</span><span class="n">Components</span><span class="p">...</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Render 함수</span>
+
+<span class="c1">// Transform, Tag, MeshRenderer Component를 가져온다.</span>
+<span class="k">auto</span> <span class="o">&amp;</span><span class="n">view</span> <span class="o">=</span> <span class="n">scene</span><span class="o">-&gt;</span><span class="n">getAllEntitiesWith</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="p">,</span> <span class="n">TagComponent</span><span class="p">,</span> <span class="n">MeshRendererComponent</span><span class="o">&gt;</span><span class="p">();</span>
+<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">entity</span> <span class="o">:</span> <span class="n">view</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="c1">// 활성화 버튼이 눌렸거나 MeshType이 None이면 렌더링하지 않는다.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">view</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">entity</span><span class="p">).</span><span class="n">m_isActive</span> <span class="o">||</span> <span class="n">view</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">MeshRendererComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">entity</span><span class="p">).</span><span class="n">type</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">MeshRendererComponent</span> <span class="o">&amp;</span><span class="n">meshRendererComponent</span> <span class="o">=</span> <span class="n">view</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">MeshRendererComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+    
+    <span class="c1">// Cull State를 확인해, 렌더링 대상이 아니면 렌더링하지 않는다.</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">meshRendererComponent</span><span class="p">.</span><span class="n">cullState</span> <span class="o">!=</span> <span class="n">ECullState</span><span class="o">::</span><span class="n">RENDER</span><span class="p">)</span>
+    <span class="p">{</span>
+        <span class="k">continue</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">drawInfo</span><span class="p">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">view</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">entity</span><span class="p">).</span><span class="n">m_WorldTransform</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">auto</span> <span class="o">*</span><span class="n">sa</span> <span class="o">=</span> <span class="n">scene</span><span class="o">-&gt;</span><span class="n">tryGet</span><span class="o">&lt;</span><span class="n">SkeletalAnimatorComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">entity</span><span class="p">))</span> <span class="c1">// SA 컴포넌트 있으면 데이터 전달</span>
+    <span class="p">{</span>
+        <span class="k">auto</span> <span class="o">*</span><span class="n">sac</span> <span class="o">=</span> <span class="p">(</span><span class="n">SAComponent</span> <span class="o">*</span><span class="p">)</span><span class="n">sa</span><span class="o">-&gt;</span><span class="n">sac</span><span class="p">.</span><span class="n">get</span><span class="p">();</span>
+        <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span><span class="o">&gt;</span> <span class="n">matrices</span> <span class="o">=</span> <span class="n">sac</span><span class="o">-&gt;</span><span class="n">getCurrentPose</span><span class="p">();</span>
+
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">matrices</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">drawInfo</span><span class="p">.</span><span class="n">finalBonesMatrices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">matrices</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">MAX_BONES</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="c1">// 항등행렬 초기화</span>
+        <span class="n">drawInfo</span><span class="p">.</span><span class="n">finalBonesMatrices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">alglm</span><span class="o">::</span><span class="n">mat4</span><span class="p">(</span><span class="mf">1.0</span><span class="n">f</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Draw 호출을 한다</span>
+    <span class="n">meshRendererComponent</span><span class="p">.</span><span class="n">m_RenderingComponent</span><span class="o">-&gt;</span><span class="n">draw</span><span class="p">(</span><span class="n">drawInfo</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>렌더링 과정에서 Component들을 가져온 것처럼, 물리 연산을 하거나 Scripting을 적용할 때도 동일하게 구현했다. 나중에 렌더링 최적화 과정에서 어느 부분이 렌더링을 느리게 하는지 프로파일링 할 일이 있었는데, 저 view 함수도 범인의 명단에 오른 적이 있었다. 하지만 프로파일링 결과 정말 빠른 것을 확인할 수 있었다! 이유는 다른 곳에 있었다(렌더링 자원 관리 실패)…</p>
+
+<h2 id="정리">정리</h2>
+<p>오늘은 ECS가 무엇인지, 그리고 OOP와 비교했을 때 어느 면에서 뛰어나고 구조적으로 성능이 좋을 수 밖에 없는 이유에 대해 설명했다. 또한 ALEngine에서 ECS를 어떻게 사용했는지 코드 예시를 보여주었다. ECS를 사용하며 좋았던 점은 뛰어난 성능도 있지만, C++의 제네릭 프로그래밍을 연습해 볼 수 있다는 점이 가장 좋았다. 그동안 템플릿을 사용해 볼 기회가 많지 않아 그저 이론상으로만 알고 있었는데, 이번 ALEngine 개발을 통해 실제로도 어떻게 사용하면 좋은지 알게 됐다.</p>
+
+<p>이번 포스트까지 해서 ALEngine의 Architecture에 대한 설명을 마쳤다. 다음 포스트는 Scene, Editor에 관한 것이다. 그리고 ALEngine의 마지막 포스트는 Scripting에 대해 설명하려고 한다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

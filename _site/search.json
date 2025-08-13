@@ -1,83 +1,115 @@
 [
   
     {
-      "title"    : "Digital Minimalism",
+      "title"    : "AI 코딩의 새로운 패러다임, Claude Code 사용 후기",
       "category" : "",
-      "tags"     : "Social Media, Minimalism, Technology",
-      "url"      : "/blog/digital-minimalism",
-      "date"     : "2019-02-20 00:00:00 +0900"
+      "tags"     : "AI, Claude, Development, Automation, Unity",
+      "url"      : "/blog/claude-code-review",
+      "date"     : "2025-08-12 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "Learn React.js in 5 minutes",
+      "title"    : "게임 개발자가 바라본 문명6의 시스템 설계 철학",
       "category" : "",
-      "tags"     : "React, JavaScript, Web Development",
-      "url"      : "/blog/learn-react-js",
-      "date"     : "2019-02-15 00:00:00 +0900"
+      "tags"     : "GameAnalysis, SystemDesign, Civilization",
+      "url"      : "/blog/civilization6-game-analysis",
+      "date"     : "2025-07-21 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "Clean Coding",
+      "title"    : "Http Request &amp; Response handling in Webserv + Config",
       "category" : "",
-      "tags"     : "Software Development, Clean Code",
-      "url"      : "/blog/clean-coding",
-      "date"     : "2018-12-10 00:00:00 +0900"
+      "tags"     : "Network, Http",
+      "url"      : "/blog/HttpMessage",
+      "date"     : "2025-07-03 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "What the heck is a Callback?",
+      "title"    : "I/O Multiplexing in Webserv",
       "category" : "",
-      "tags"     : "JavaScript, Nodejs, Web Development",
-      "url"      : "/blog/what-the-heck-is-a-callback",
-      "date"     : "2018-12-01 00:00:00 +0900"
+      "tags"     : "Network, Multiplexing, kqueue, Server",
+      "url"      : "/blog/IOMultiplexing",
+      "date"     : "2025-06-17 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "4 Lessons After 11 Years in Silicon Valley",
+      "title"    : "Webserv",
       "category" : "",
-      "tags"     : "",
-      "url"      : "/blog/four-lessons-after-eleven-years-in-silicon-valley",
-      "date"     : "2018-05-09 00:00:00 +0900"
+      "tags"     : "Network, HTTP, TCP/IP, Server",
+      "url"      : "/blog/webserv",
+      "date"     : "2025-06-11 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "GitHub Flow",
+      "title"    : "Scripting",
       "category" : "",
-      "tags"     : "GitHub, Workflow",
-      "url"      : "/blog/github-flow",
-      "date"     : "2017-01-01 00:00:00 +0900"
+      "tags"     : "Game Engine, Scripting",
+      "url"      : "/blog/scripting",
+      "date"     : "2025-05-29 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "A better Hello World",
+      "title"    : "Scene, Editor",
       "category" : "",
-      "tags"     : "Software Development",
-      "url"      : "/blog/a-better-hello-world",
-      "date"     : "2016-07-23 00:00:00 +0900"
+      "tags"     : "Game Engine, ImGui, yaml-cpp",
+      "url"      : "/blog/scene-editor",
+      "date"     : "2025-04-25 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "Do not go gentle into that good night",
+      "title"    : "Game Engine Architecture - ECS",
       "category" : "",
-      "tags"     : "Poetry",
-      "url"      : "/blog/do-not-go-gentle-into-that-good-night",
-      "date"     : "2016-04-17 00:00:00 +0900"
+      "tags"     : "Game Engine",
+      "url"      : "/blog/gameengine-ecs",
+      "date"     : "2025-04-14 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "What is version control?",
+      "title"    : "Game Engine Architecture - Input Event System",
       "category" : "",
-      "tags"     : "Version Control",
-      "url"      : "/blog/what-is-version-control",
-      "date"     : "2016-02-09 00:00:00 +0900"
+      "tags"     : "Game Engine",
+      "url"      : "/blog/event-system",
+      "date"     : "2025-04-13 00:00:00 +0900"
     } ,
   
     {
-      "title"    : "How to undo your git failure?",
+      "title"    : "Game Engine Architecture - Engine Loop",
       "category" : "",
-      "tags"     : "External Post, Git",
-      "url"      : "https://blog.usejournal.com/how-to-undo-your-git-failure-b76e31ecac74",
-      "date"     : "2015-09-25 00:00:00 +0900"
+      "tags"     : "Game Engine",
+      "url"      : "/blog/gameengine-loop",
+      "date"     : "2025-04-12 00:00:00 +0900"
+    } ,
+  
+    {
+      "title"    : "Game Engine Architecture - Project Settings",
+      "category" : "",
+      "tags"     : "Game Engine, CMake, Makefile",
+      "url"      : "/blog/project-settings",
+      "date"     : "2025-04-07 00:00:00 +0900"
+    } ,
+  
+    {
+      "title"    : "Game Engine Architecture - Intro",
+      "category" : "",
+      "tags"     : "Game Engine",
+      "url"      : "/blog/gameengine-architecture",
+      "date"     : "2025-03-30 00:00:00 +0900"
+    } ,
+  
+    {
+      "title"    : "Physics Engine",
+      "category" : "",
+      "tags"     : "Game Engine, Physics",
+      "url"      : "/blog/physics-broadphase",
+      "date"     : "2025-03-25 00:00:00 +0900"
+    } ,
+  
+    {
+      "title"    : "AfterLife Engine",
+      "category" : "",
+      "tags"     : "Game Engine, Graphics",
+      "url"      : "/blog/first-post",
+      "date"     : "2025-03-24 00:00:00 +0900"
     } 
   
 ]

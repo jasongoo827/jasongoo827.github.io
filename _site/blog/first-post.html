@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>AfterLife Engine</b></h1>
+
+    <p class="post-metadata text-muted">
+      24 March 2025 -  
+      <b>less than 1 min read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#game-engine">
+          <span class="tag badge badge-pill text-primary border border-primary">Game Engine</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#graphics">
+          <span class="tag badge badge-pill text-primary border border-primary">Graphics</span>
+        </a>
+        </p>
+
+    <p>블로그의 가장 첫 포스트로 내가 만든 게임엔진을 소개하려고 한다. 프로그래밍을 시작한 이후로 가장 정성을 들여 만든 프로그램이기에, 포스트도 내가 구현한 기능별로 상세하게 기록할 예정이다. 다 만들고 나서 아쉬운 점도 많았지만, 그래도 게임 엔진에 관해 많이 알게 되어 얻어가는 점도 많았다고 생각한다. 이제 AfterLife Engine에 대한 소개를 하겠다.</p>
+
+<hr />
+
+<h2 id="afterlife-engine-202410--202503">AfterLife Engine (2024/10 ~ 2025/03)</h2>
+<p>ALEngine 프로젝트는 Vulkan API를 활용해 개발한 게임 엔진이다. 42Seoul의 VeryRealEngine 프로젝트를 수행하기 위해 개발됐다. ALEngine은 최신 그래픽 기술을 활용한 3D 렌더링, 물리 시뮬레이션, 애니메이션 시스템, 스크립팅을 포함하고 있으며, 직관적인 에디터(Editor) 를 통해 쉽게 조작할 수 있다. 다음은 엔진의 데모 영상이다.</p>
+
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=cwIg2w3mOJ0">Renderer</a></li>
+  <li><a href="https://www.youtube.com/watch?v=oJnp3A-QEsE">Physics</a></li>
+  <li><a href="https://youtu.be/M6dmDZbce60">Animation</a></li>
+</ul>
+
+<p><img src="https://github.com/Very-Real-Engine/ALEngine/blob/main/docs/images/Editor.png?raw=true" alt="Editor Preview" /></p>
+
+<hr />
+<h2 id="프로젝트에서-나의-역할">프로젝트에서 나의 역할</h2>
+<p>ALEngine의 전체적인 구조를 만들고, 렌더링 엔진, 물리 엔진을 이식했다. 그리고 엔진의 기능을 시험해 볼 수 있는 에디터를 만들고 C#으로 게임 코드를 작성할 수 있게 스크립팅을 구현했다. 팀장의 역할도 수행했다. 처음부터 팀장은 아니었지만, 점점 개발 과정에서 회의를 주도적으로 진행하게 되었고 프로젝트 일정 관리, 문제 상황 공유 등 개발 외적인 일도 많이 하게 되면서 팀장 역할을 수행하게 됐다.</p>
+
+<hr />
+
+<h2 id="앞으로-올릴-post들">앞으로 올릴 Post들</h2>
+<p>내가 구현한 부분들에 관해 상세하게 시리즈별로 올릴 예정이다. 물리 엔진 broadphase -&gt; 엔진 구조 -&gt; Editor -&gt; Scripting 순서 대로 진행할 것이다. 또 렌더링 엔진이나 물리 엔진에 관한 부분은 추후에 간략하게 정리할 예정이다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

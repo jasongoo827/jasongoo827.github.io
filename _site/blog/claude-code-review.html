@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>AI 코딩의 새로운 패러다임, Claude Code 사용 후기</b></h1>
+
+    <p class="post-metadata text-muted">
+      12 August 2025 -  
+      <b>8 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#ai">
+          <span class="tag badge badge-pill text-primary border border-primary">AI</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#claude">
+          <span class="tag badge badge-pill text-primary border border-primary">Claude</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#development">
+          <span class="tag badge badge-pill text-primary border border-primary">Development</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#automation">
+          <span class="tag badge badge-pill text-primary border border-primary">Automation</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#unity">
+          <span class="tag badge badge-pill text-primary border border-primary">Unity</span>
+        </a>
+        </p>
+
+    <h2 id="도입-ai-코딩-도구의-진화">도입: AI 코딩 도구의 진화</h2>
+
+<p>최근 AI를 활용한 Vibe Coding, MCP(Model Context Protocol), 자동화 등 새로운 기능들이 매일같이 쏟아지고 있다. 시대의 흐름에 맞춰 AI를 잘 활용하는 개발자가 되어야겠다는 생각이 들었다.</p>
+
+<p>그동안 나는 ChatGPT를 이렇게 사용해왔다:</p>
+<ol>
+  <li>궁금한 것, 모르는 것 질문</li>
+  <li>답변을 바탕으로 작업 시작</li>
+  <li>문답을 이어가며 프로젝트 진행</li>
+</ol>
+
+<p>하지만 GPT가 제시한 코드를 복사해서 IDE에 붙여넣고 테스트하는 과정은 생각보다 번거로웠다. 특히 Unity의 NGO(Netcode for GameObjects)를 공부하면서 GPT의 부정확한 답변과 오류가 많은 코드를 보며 실망했다. “내가 한 달에 3만원씩 내는 도구가 이 정도라니?” 이참에 Claude Code를 사용해보기로 결심했다.</p>
+
+<h2 id="claude-code-cli-첫-만남">Claude Code CLI 첫 만남</h2>
+
+<p>평소 터미널로 작업하는 것을 좋아하는 나에게 Claude Code의 CLI는 매력적이었다. 큰맘 먹고 월 $20 요금제를 결제했다.</p>
+
+<h3 id="첫-번째-실습-사진-슬라이드쇼-만들기">첫 번째 실습: 사진 슬라이드쇼 만들기</h3>
+
+<p>Mac 사용자로서 컴퓨터에 저장된 사진들로 슬라이드쇼를 만들어달라고 요청했다. Claude Code의 반응은 놀라웠다:</p>
+
+<ul>
+  <li>필요한 환경 세팅부터 자동으로 구성</li>
+  <li>코드 작성 및 테스트까지 일괄 처리</li>
+  <li><strong>가상환경 세팅을 자동으로 수행</strong></li>
+  <li>중간에 발생한 오류를 스스로 감지하고 수정</li>
+</ul>
+
+<p>5컷짜리 간단한 슬라이드쇼가 순식간에 완성되었다. 복잡한 작업에도 충분히 활용할 수 있겠다는 확신이 들었다.</p>
+
+<h3 id="claude-code가-생성한-결과물">Claude Code가 생성한 결과물</h3>
+
+<p><strong>생성된 Python 코드 예시:</strong></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Claude Code가 자동 생성한 슬라이드쇼 코드 일부
+</span><span class="k">class</span> <span class="nc">PhotoSlideshowMaker</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">photos_dir</span><span class="o">=</span><span class="s">"photos"</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s">"output"</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">video_size</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1920</span><span class="p">,</span> <span class="mi">1080</span><span class="p">)</span>  <span class="c1"># Full HD
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">fps</span> <span class="o">=</span> <span class="mi">30</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">photo_duration</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># 각 사진 표시 시간 (초)
+</span>        
+    <span class="k">def</span> <span class="nf">get_photos_sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">"""사진들을 날짜순으로 정렬하여 반환"""</span>
+        <span class="n">photo_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">image_extensions</span><span class="p">:</span>
+            <span class="n">photo_files</span><span class="p">.</span><span class="n">extend</span><span class="p">(</span><span class="n">glob</span><span class="p">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">photos_dir</span><span class="p">,</span> <span class="n">ext</span><span class="p">)))</span>
+        <span class="c1"># EXIF 데이터로 날짜순 정렬
+</span>        <span class="n">photo_files</span><span class="p">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="bp">self</span><span class="p">.</span><span class="n">get_photo_date</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">photo_files</span>
+</code></pre></div></div>
+
+<p><strong>자동 생성된 프로젝트 구조:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ClaudeCLI/
+├── photo_slideshow_env/      # 자동 생성된 가상환경
+├── photo_slideshow/
+│   ├── slideshow_maker.py   # 125줄의 완성된 코드
+│   ├── photos/              # 5장의 사진 자동 처리
+│   ├── output/
+│   │   └── test_slideshow.mp4  # 최종 결과물
+│   └── README.md            # 사용법 문서 자동 생성
+</code></pre></div></div>
+
+<p><strong>개발 체크리스트:</strong></p>
+<ul class="task-list">
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />기본 환경 설정</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />사진 날짜순 정렬</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" checked="checked" />기본 슬라이드쇼 생성</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />배경음악 추가</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />전환 효과 추가</li>
+  <li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled="disabled" />최종 테스트</li>
+</ul>
+
+<p>놀라운 점은 단순히 코드만 생성한 것이 아니라:</p>
+<ul>
+  <li><strong>가상환경을 자동으로 설정</strong>하고 필요한 패키지 설치</li>
+  <li><strong>EXIF 메타데이터</strong>를 읽어 사진을 날짜순으로 정렬</li>
+  <li><strong>에러 핸들링</strong>과 사용자 친화적인 로그 출력</li>
+  <li><strong>README 문서</strong>까지 자동으로 작성</li>
+</ul>
+
+<p>모든 것이 한 번의 요청으로 완성되었다.</p>
+
+<h2 id="mcpmodel-context-protocol-활용">MCP(Model Context Protocol) 활용</h2>
+
+<h3 id="notion-mcp-연동">Notion MCP 연동</h3>
+
+<p>처음에는 커스텀 Notion MCP를 만들려고 <code class="language-plaintext highlighter-rouge">settings.json</code>을 조작하고 스크립트까지 작성했지만, 생각대로 동작하지 않았다. 결국 공식 Notion MCP를 사용하니 API 키만 등록하면 <strong>5분 만에</strong> 내 Notion 페이지를 Claude가 읽어와 작업을 수행할 수 있었다.</p>
+
+<p><img src="/assets/notionmcp.png" alt="Notion MCP 설정" />
+<sub><strong><em>settings.json에 Notion MCP 설정 추가 - API 키만 있으면 바로 연동 가능</em></strong></sub></p>
+
+<p><img src="/assets/notion.png" alt="Notion 페이지 읽기" />
+<sub><strong><em>Claude가 내 Notion 페이지를 읽고 작업 수행 - 개발 일정과 문서를 자동으로 파악</em></strong></sub></p>
+
+<p><strong>활용 아이디어</strong>: Notion으로 개발 일정을 관리한다면 이런 자동화 파이프라인을 구축할 수 있을 것 같다:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Notion Todo 작성 → 개발환경 세팅 → 작업 수행 → Notion에 결과 반영
+</code></pre></div></div>
+
+<p>실제로 Claude는 내 Notion 페이지의 개발 일정을 읽고, 해당 작업을 자동으로 수행한 뒤, 완료 상태를 다시 Notion에 업데이트할 수 있었다. 프로젝트 관리와 개발을 통합하는 강력한 워크플로우다.</p>
+
+<h2 id="unity-vibe-coding-실전">Unity Vibe Coding 실전</h2>
+
+<h3 id="subagent-기능-발견">Subagent 기능 발견</h3>
+
+<p>Claude 공식 문서에서 Subagent 기능을 발견하고 Unity 프로젝트에 적용해보기로 했다.</p>
+
+<h4 id="첫-시도-project-setting-agent">첫 시도: Project Setting Agent</h4>
+
+<p><code class="language-plaintext highlighter-rouge">/agents</code> 명령으로 프로젝트 세팅 Agent를 만들었다. 짧은 프롬프트로 2D 플랫포머 게임 환경을 구축하려 했지만, 예상과 달리 Agent가 <strong>전체 플랫포머 게임 코드를 생성</strong>해버렸다.</p>
+
+<p><strong>교훈</strong>: Agent에게는 제한적이고 명확한 역할을 부여해야 한다.</p>
+
+<h4 id="두-번째-시도-game-development-agent">두 번째 시도: Game Development Agent</h4>
+
+<p>이번에는 다른 접근을 시도했다:</p>
+
+<ol>
+  <li>Claude에게 게임 흐름을 <strong>아주 자세하게</strong> 설명</li>
+  <li>각 기능의 동작 방식을 구체적으로 명시</li>
+  <li>“프로그래밍 도움만” 주도록 역할 제한</li>
+  <li>단계별 기능 구현 요청</li>
+</ol>
+
+<p>결과는 훨씬 나아졌다. 원하는 기능을 정확히 구현했고, 테스트 방법까지 단계별로 안내받아 <strong>3일 만에</strong> 게임의 핵심 기능을 완성할 수 있었다.</p>
+
+<h3 id="실제-사용한-agent-프롬프트">실제 사용한 Agent 프롬프트</h3>
+
+<p>효과적인 Agent 프롬프트 작성의 핵심은 <strong>구체적이고 제한적인 역할 정의</strong>였다:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>name: game-development-agent
+description: Unity Mobile Game - Bakery Simulation
+model: sonnet
+
+# Game Development Agent
+
+## Project Overview
+3D 아이소메트릭 베이커리 경영 시뮬레이션 게임
+- Unity 2022.3.19f 기반
+- 모바일 최적화 (Portrait 720x1280)
+- C# 스크립트 개발에만 집중
+
+## Core Systems
+1. Player Movement (Virtual Joystick)
+2. Production System (자동 생산)  
+3. Customer AI (주문, 결제)
+4. Economy System (코인 관리)
+5. UI/UX (HUD, 말풍선)
+
+## Development Constraints
+- 한 번에 하나의 시스템만 구현
+- 기존 코드와의 연동 우선 고려
+- 모바일 성능 최적화 필수
+</code></pre></div></div>
+
+<p>이 프롬프트를 통해 Claude Code는 정확히 내가 원하는 범위 내에서 코드를 생성했고, 게임의 핵심 시스템을 체계적으로 구현할 수 있었다.</p>
+
+<h3 id="실제-개발-성과">실제 개발 성과</h3>
+
+<p><strong>3일간의 Unity 게임 개발 통계:</strong></p>
+
+<p><strong>프로젝트 구조:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>BakeryGame/
+├── Scripts/             # 30개의 C# 스크립트
+│   ├── Animation/       # 애니메이션 헬퍼
+│   ├── Config/          # 게임 설정 관리
+│   ├── Controllers/     # 플레이어, 인벤토리, 생산 시스템
+│   ├── Customers/       # AI 고객 시스템
+│   ├── Economy/         # 경제 시스템
+│   ├── Interactions/    # 상호작용 시스템
+│   ├── Interior/        # 확장 시스템
+│   ├── Managers/        # 게임 매니저
+│   ├── UI/             # UI 시스템 (조이스틱, HUD, 말풍선)
+│   └── Utilities/       # 유틸리티 (패스파인딩 등)
+</code></pre></div></div>
+
+<p><strong>개발 성과:</strong></p>
+<ul>
+  <li>총 코드 라인수: <strong>16,314줄</strong></li>
+  <li>생성된 스크립트: <strong>30개</strong></li>
+  <li>구현된 핵심 시스템: <strong>9개</strong></li>
+</ul>
+
+<p><strong>완성된 시스템들:</strong></p>
+
+<p>✅ Player Movement (Virtual Joystick)<br />
+✅ Production System (자동 생산)<br />
+✅ Inventory Management (8개 제한)<br />
+✅ Customer AI (주문, 이동, 결제)<br />
+✅ Economy System (코인 수집)<br />
+✅ Display System (빵 진열)<br />
+✅ Cashier System (결제 처리)<br />
+✅ Interior Expansion (가구 구매)<br />
+✅ UI/UX (HUD, 말풍선, 튜토리얼)</p>
+
+<p><strong>자동화된 작업들:</strong></p>
+<ul>
+  <li>NavMesh 설정 및 경로 찾기</li>
+  <li>애니메이션 컨트롤러 연결</li>
+  <li>이벤트 시스템 구축</li>
+  <li>오브젝트 풀링 최적화</li>
+</ul>
+
+<p>Claude Code의 가장 인상적인 점은 <strong>단순히 코드를 생성하는 것이 아니라</strong>, 전체 시스템 간의 연결과 상호작용까지 고려해서 구현했다는 것이다. 특히 Customer AI가 DisplayCase의 상태를 확인하고, CashierSystem과 연동되며, MoneyManager를 통해 경제 시스템과 통합되는 과정이 자연스럽게 구현되었다.</p>
+
+<h2 id="사용하면서-발견한-한계와-팁">사용하면서 발견한 한계와 팁</h2>
+
+<h3 id="발견한-문제점들">발견한 문제점들</h3>
+
+<ol>
+  <li><strong>코드 복잡도와 정확도의 반비례</strong>
+    <ul>
+      <li>코드가 복잡해질수록 적중률이 떨어짐</li>
+      <li>초기에는 정확했던 코드가 점점 오류 증가</li>
+    </ul>
+  </li>
+  <li><strong>지시사항의 명확성이 핵심</strong>
+    <ul>
+      <li>❌ “이 부분에 문제가 있어. 고쳐줄래?”</li>
+      <li>✅ “PlayerController.cs와 CharacterController.cs의 기능이 중복됨. PlayerController만 남기고 삭제해줘.”</li>
+    </ul>
+  </li>
+  <li><strong>토큰 소비량</strong>
+    <ul>
+      <li>예상보다 많은 토큰 필요</li>
+      <li>$100 요금제로 업그레이드 (Sonnet 모델은 거의 무제한)</li>
+    </ul>
+  </li>
+  <li><strong>일반적인 오류 패턴</strong>
+    <ul>
+      <li>삭제된 변수에 접근</li>
+      <li>기능 중복 구현 (이름만 살짝 다르게)</li>
+      <li>private 변수 접근 시도</li>
+      <li>이벤트 사용 방식의 일관성 부족</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="생산성-향상을-위한-제안">생산성 향상을 위한 제안</h3>
+
+<p>코드가 길어지면서 시행착오가 늘어나 오히려 생산성이 떨어질 수 있다. 현재 경험을 바탕으로 한 개선 방안:</p>
+
+<ol>
+  <li><strong>Agent 역할을 명확하게 제한</strong>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>game-setup-agent:
+  역할: "Unity 프로젝트 초기 설정만"
+  제한: "코드 생성 금지, 설정 파일만 수정"
+   
+feature-development-agent:
+  역할: "단일 기능 구현"
+  제한: "한 번에 하나의 시스템만, 최대 5개 스크립트"
+   
+debugging-agent:
+  역할: "오류 수정 전담"
+  제한: "새 기능 추가 금지, 버그 수정만"
+</code></pre></div>    </div>
+  </li>
+  <li><strong>단계별 작업 분할</strong>
+    <ul>
+      <li>복잡한 요청을 작은 단위로 나누어 요청</li>
+      <li>각 단계마다 컴파일 확인 후 다음 단계 진행</li>
+      <li>Agent에게 “이전 단계 완료 확인 후 진행” 명시</li>
+    </ul>
+  </li>
+  <li><strong>명확한 지시사항 작성법</strong>
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>❌ "이 부분에 문제가 있어. 고쳐줄래?"
+✅ "PlayerController.cs 47번째 줄의 NullReferenceException을 
+    null 체크 추가로 해결해줘"
+   
+❌ "게임 시스템을 만들어줘"
+✅ "Player가 아이템을 주울 수 있는 상호작용 시스템만 구현해줘.
+    범위: PlayerController에 OnTriggerEnter 추가"
+</code></pre></div>    </div>
+  </li>
+  <li><strong>프로젝트 컨텍스트 관리</strong>
+    <ul>
+      <li>CLAUDE.md 파일에 프로젝트 규칙과 구조 명시</li>
+      <li>코딩 컨벤션과 네이밍 규칙 사전 정의</li>
+      <li>각 Agent 사용 전 컨텍스트 파일 참조 요청</li>
+    </ul>
+  </li>
+</ol>
+
+<p><strong>현실적인 워크플로우:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. 기능 요구사항 정리 → CLAUDE.md 업데이트
+2. 단일 기능 Agent로 코어 로직 구현
+3. 컴파일 및 테스트
+4. 디버깅 Agent로 오류 수정
+5. 다음 기능으로 반복
+</code></pre></div></div>
+
+<p>이렇게 하면 현재 Claude Code 기능 범위 내에서도 생산성을 크게 향상시킬 수 있다.</p>
+
+<h2 id="결론-ai-코딩-도구의-미래">결론: AI 코딩 도구의 미래</h2>
+
+<p>Claude Code는 확실히 이전보다 빠른 개발을 가능하게 했다. 특히:</p>
+
+<ul>
+  <li><strong>자동 환경 세팅</strong>과 <strong>오류 자동 수정</strong>이 인상적</li>
+  <li>MCP를 통한 <strong>외부 도구 연동</strong>이 강력함</li>
+  <li>Agent 기능으로 <strong>복잡한 작업 자동화</strong> 가능</li>
+</ul>
+
+<p>하지만 완벽한 도구는 아니다. AI를 잘 활용하려면:</p>
+<ul>
+  <li>명확하고 구체적인 지시사항 작성 능력</li>
+  <li>Agent와 파이프라인 설계 능력</li>
+  <li>AI의 한계를 이해하고 보완하는 능력</li>
+</ul>
+
+<p>이 필요하다.</p>
+
+<p>최근 GPT-5도 출시되었다고 하니, 다양한 AI 도구들을 계속 테스트하며 최적의 워크플로우를 찾아갈 예정이다. AI는 도구일 뿐, 결국 이를 얼마나 잘 활용하느냐가 개발자의 경쟁력이 될 것 같다.</p>
+
+<h2 id="마무리">마무리</h2>
+
+<p>AI 코딩 도구는 계속 진화하고 있다. Claude Code, GitHub Copilot, Cursor 등 다양한 도구들이 경쟁하며 발전하고 있다. 중요한 것은 <strong>맹목적으로 의존하지 않고, 도구의 장단점을 파악해 적재적소에 활용</strong>하는 것이다.</p>
+
+<p>앞으로도 새로운 AI 기능들을 실험하며 생산성을 높이고, 더 창의적인 작업에 집중할 수 있는 환경을 만들어갈 계획이다. AI와 함께 성장하는 개발자가 되어야겠다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

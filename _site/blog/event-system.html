@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>Game Engine Architecture - Input Event System</b></h1>
+
+    <p class="post-metadata text-muted">
+      13 April 2025 -  
+      <b>10 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#game-engine">
+          <span class="tag badge badge-pill text-primary border border-primary">Game Engine</span>
+        </a>
+        </p>
+
+    <h2 id="input-event-system">Input Event System</h2>
+
+<p>지난 포스트는 ALEngine의 한 프레임에서 Update Loop에 대해 설명했었다. 이번에는 Update Loop의 첫 단계인 입력 처리에 대한 부분이다. 입력 처리 시스템이 따로 필요한 이유는 무엇일까?</p>
+
+<h4 id="프로그램이-이해할-수-있는-명령으로-처리-가능">프로그램이 이해할 수 있는 명령으로 처리 가능</h4>
+<p>게임 장치는 키보드, 마우스, 컨트롤러, 터치스크린 등 다양한 입력 장치로부터 신호를 받는다. 이를 엔진이 이해할 수 있는 이벤트, 명령으로 바꿔준다.</p>
+
+<h4 id="다양한-플랫폼-지원-가능">다양한 플랫폼 지원 가능</h4>
+<p>하나의 게임을 여러 플랫폼(PC, 콘솔, 모바일 등)에서 실행하려면, 입력 방식이 전부 다르다. 입력 처리 시스템이 <strong>추상화</strong>되어 있다면, 각 플랫폼별 입력 방식을 일관된 인터페이스로 통합할 수 있다.</p>
+
+<h4 id="입력-큐-및-이벤트-관리-가능">입력 큐 및 이벤트 관리 가능</h4>
+<p>입력을 실시간으로 처리하는 게 아니라, 일단 큐에 넣고 정해진 순서대로 처리할 수 있다. 이 방식은 프레임 단위로 정확한 처리가 가능해서, 멀티플레이나 고속 액션에서도 입력 지연을 줄여준다.
+이러한 여러 가지 이유로 엔진에서 입력 처리 시스템을 구현해놓으면 코드의 유지보수성, 확장성이 좋아지고 엔진을 사용하는 프로그래머나 게임을 하는 플레이어에게 편리함을 제공할 수 있다.</p>
+
+<h2 id="코드-설계">코드 설계</h2>
+<p>나는 MacOS, Linux 등에도 동작하는 확장성 있는 엔진을 만들고 싶었기 때문에, 입력 시스템을 추상화해야 했다. 입력 시스템을 구현하려면 먼저 창(Window)이 필요했다. Vulkan과 Window OS를 모두 지원하는 라이브러리를 조사해보니, GLFW가 있었다.</p>
+
+<h4 id="glfw">GLFW</h4>
+<p><strong>GLFW</strong>는 Graphics Library Framework의 약자로 OpenGL, OpenGL ES, Vulkan 기반 어플리케이션 개발을 위한 <strong>오픈 소스 크로스 플랫폼 라이브러리</strong>이다. 이 라이브러리는 창 생성, 렌더링 컨텍스트와 서피스 설정, 입력 처리, 이벤트 핸들링 등을 위한 간단하고 플랫폼 독립적인 API를 제공한다. ALEngine은 Vulkan을 기반으로 한 Window 어플리케이션이기 때문에 GLFW를 사용하는 것이 적절했다.</p>
+
+<h4 id="window-class">Window Class</h4>
+<p>ALEngine은 Vulkan, Window만 지원하면 됐지만, 나는 확장성 있는 코드를 작성하고 싶었다. 그래서 Window 클래스를 만들어 추상화 한 후, OS에 맞게 구체화하는 코드를 작성했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Window</span>
+<span class="p">{</span>
+  <span class="nl">public:</span>
+
+	<span class="k">using</span> <span class="n">EventCallbackFn</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">function</span><span class="o">&lt;</span><span class="kt">void</span><span class="p">(</span><span class="n">Event</span> <span class="o">&amp;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="o">~</span><span class="n">Window</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">void</span> <span class="n">onUpdate</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">uint32_t</span> <span class="n">getWidth</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">uint32_t</span> <span class="n">getHeight</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="n">GLFWwindow</span> <span class="o">*</span><span class="n">getNativeWindow</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">void</span> <span class="n">setEventCallback</span><span class="p">(</span><span class="k">const</span> <span class="n">EventCallbackFn</span> <span class="o">&amp;</span><span class="n">callback</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">void</span> <span class="n">setVSync</span><span class="p">(</span><span class="kt">bool</span> <span class="n">enabled</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">bool</span> <span class="n">isVSync</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">static</span> <span class="n">Window</span> <span class="o">*</span><span class="n">create</span><span class="p">(</span><span class="k">const</span> <span class="n">WindowProps</span> <span class="o">&amp;</span><span class="n">props</span> <span class="o">=</span> <span class="n">WindowProps</span><span class="p">());</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<h4 id="windowswindow-class">WindowsWindow Class</h4>
+<p>Window OS에서 동작하는 Window Class</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">WindowsWindow</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Window</span>
+<span class="p">{</span>
+  <span class="nl">public:</span>
+
+	<span class="n">WindowsWindow</span><span class="p">(</span><span class="k">const</span> <span class="n">WindowProps</span> <span class="o">&amp;</span><span class="n">props</span><span class="p">);</span>
+	<span class="k">virtual</span> <span class="o">~</span><span class="n">WindowsWindow</span><span class="p">();</span>
+	<span class="kt">void</span> <span class="n">onUpdate</span><span class="p">()</span> <span class="k">override</span><span class="p">;</span>
+
+	<span class="kr">inline</span> <span class="kt">uint32_t</span> <span class="n">getWidth</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">m_Data</span><span class="p">.</span><span class="n">width</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="kr">inline</span> <span class="kt">uint32_t</span> <span class="n">getHeight</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">m_Data</span><span class="p">.</span><span class="n">height</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="kr">inline</span> <span class="kt">void</span> <span class="n">setEventCallback</span><span class="p">(</span><span class="k">const</span> <span class="n">EventCallbackFn</span> <span class="o">&amp;</span><span class="n">callback</span><span class="p">)</span> <span class="k">override</span>
+	<span class="p">{</span>
+		<span class="n">m_Data</span><span class="p">.</span><span class="n">eventCallback</span> <span class="o">=</span> <span class="n">callback</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="kr">inline</span> <span class="n">GLFWwindow</span> <span class="o">*</span><span class="n">getNativeWindow</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">m_Window</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="kt">void</span> <span class="n">setVSync</span><span class="p">(</span><span class="kt">bool</span> <span class="n">enabled</span><span class="p">)</span> <span class="k">override</span><span class="p">;</span>
+	<span class="kt">bool</span> <span class="n">isVSync</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span><span class="p">;</span>
+
+  <span class="nl">private:</span>
+	<span class="k">virtual</span> <span class="kt">void</span> <span class="n">init</span><span class="p">(</span><span class="k">const</span> <span class="n">WindowProps</span> <span class="o">&amp;</span><span class="n">props</span><span class="p">);</span>
+	<span class="k">virtual</span> <span class="kt">void</span> <span class="n">shutDown</span><span class="p">();</span>
+
+  <span class="nl">private:</span>
+	<span class="n">GLFWwindow</span> <span class="o">*</span><span class="n">m_Window</span><span class="p">;</span>
+
+	<span class="k">struct</span> <span class="nc">WindowData</span>
+	<span class="p">{</span>
+		<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">title</span><span class="p">;</span>
+		<span class="kt">uint32_t</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">;</span>
+		<span class="kt">bool</span> <span class="n">vSync</span><span class="p">;</span>
+
+		<span class="n">EventCallbackFn</span> <span class="n">eventCallback</span><span class="p">;</span>
+	<span class="p">};</span>
+
+	<span class="n">WindowData</span> <span class="n">m_Data</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>WindowsWindow 클래스를 통해 창을 생성하고 나면, 입력 처리를 구현할 수 있다. GLFW에는 특정 이벤트가 발생했을 때, 호출되는 Callback 함수들이 있다. 하나의 예시에 대해 먼저 설명하겠다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>// 창의 크기에 대한 Callback 함수. 창이 Resize 됐을 때 호출된다.
+typedef void (* GLFWwindowsizefun)(GLFWwindow* window, int width, int height);
+GLFWAPI GLFWwindowsizefun glfwSetWindowSizeCallback(GLFWwindow* window, GLFWwindowsizefun callback);
+
+</code></pre></div></div>
+
+<p>Callback 함수가 호출됐을 때 void 반환형의 함수가 실행되게 할 수 있다. 이는 다른 Callback 함수들도 마찬가지이다. 이를 이용해 Callback 함수 호출 시 원하는 이벤트 객체를 생성하고, 어플리케이션의 상위단에서 해당 이벤트를 적절히 처리하게 설계할 수 있다. 아래 과정으로 이벤트가 전파되게 설계했다.</p>
+
+<p><strong>GLFW Callback 함수 호출 -&gt; Lambda 함수 실행 -&gt; 이벤트 객체 생성 -&gt; 이벤트 전파</strong></p>
+
+<h4 id="event-class">Event Class</h4>
+<p>GLFW Callback 함수에서 생성할 이벤트 객체를 만들기 위해 Event Class를 구현했다. enum class로 이벤트 타입과 카테고리를 정의하고, 구체화된 Event Class에 값을 넣어주었다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">enum</span> <span class="k">class</span> <span class="nc">EEventType</span>
+<span class="p">{</span>
+	<span class="n">NONE</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+	<span class="n">WINDOW_CLOSE</span><span class="p">,</span>
+	<span class="n">WINDOW_RESIZE</span><span class="p">,</span>
+	<span class="n">WINDOW_FOCUS</span><span class="p">,</span>
+	<span class="n">WINDOW_LOST_FOCUS</span><span class="p">,</span>
+	<span class="n">WINDOW_MOVED</span><span class="p">,</span> <span class="c1">// window</span>
+	<span class="n">APP_TICK</span><span class="p">,</span>
+	<span class="n">APP_UPDATE</span><span class="p">,</span>
+	<span class="n">APP_RENDER</span><span class="p">,</span> <span class="c1">// app</span>
+	<span class="n">KEY_PRESSED</span><span class="p">,</span>
+	<span class="n">KEY_RELEASED</span><span class="p">,</span>
+	<span class="n">KEY_TYPED</span><span class="p">,</span> <span class="c1">// key</span>
+	<span class="n">MOUSE_BUTTON_PRESSED</span><span class="p">,</span>
+	<span class="n">MOUSE_BUTTON_RELEASED</span><span class="p">,</span>
+	<span class="n">MOUSE_MOVE</span><span class="p">,</span>
+	<span class="n">MOUSE_SCROLLED</span> <span class="c1">// mouse</span>
+<span class="p">};</span>
+
+<span class="k">enum</span> <span class="n">EEventCategory</span>
+<span class="p">{</span>
+	<span class="n">NONE</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+	<span class="n">EVENT_CATEGORY_APP</span> <span class="o">=</span> <span class="n">BIT</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+	<span class="n">EVENT_CATEGORY_INPUT</span> <span class="o">=</span> <span class="n">BIT</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
+	<span class="n">EVENT_CATEGORY_KEYBOARD</span> <span class="o">=</span> <span class="n">BIT</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+	<span class="n">EVENT_CATEGORY_MOUSE</span> <span class="o">=</span> <span class="n">BIT</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span>
+	<span class="n">EVENT_CATEGORY_MOUSE_BUTTON</span> <span class="o">=</span> <span class="n">BIT</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<h4 id="추상화">추상화</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Event</span>
+<span class="p">{</span>
+	<span class="k">friend</span> <span class="k">class</span> <span class="nc">EventDispatcher</span><span class="p">;</span>
+
+  <span class="nl">public:</span>
+	<span class="k">virtual</span> <span class="o">~</span><span class="n">Event</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="n">EEventType</span> <span class="n">getEventType</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getName</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span> <span class="kt">int</span> <span class="n">getCategoryFlags</span><span class="p">()</span> <span class="k">const</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+	<span class="k">virtual</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">toString</span><span class="p">()</span> <span class="k">const</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">getName</span><span class="p">();</span>
+	<span class="p">}</span>
+
+	<span class="kr">inline</span> <span class="kt">bool</span> <span class="n">isInCategory</span><span class="p">(</span><span class="n">EEventCategory</span> <span class="n">category</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">getCategoryFlags</span><span class="p">()</span> <span class="o">&amp;</span> <span class="n">category</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="kt">bool</span> <span class="n">m_Handled</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<h4 id="구체화">구체화</h4>
+<p>Event는 AppEvent, KeyEvent, MouseEvent로 구체화했다. 코드를 다 설명하는 것은 불필요하니 WindowResizeEvent 하나만 예시로 설명하겠다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">WindowResizeEvent</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Event</span>
+<span class="p">{</span>
+  <span class="nl">public:</span>
+	<span class="n">WindowResizeEvent</span><span class="p">(</span><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">height</span><span class="p">)</span> <span class="o">:</span> <span class="n">m_Width</span><span class="p">(</span><span class="n">width</span><span class="p">),</span> <span class="n">m_Height</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+	<span class="p">{</span>
+	<span class="p">}</span>
+
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">getWidth</span><span class="p">()</span> <span class="k">const</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">m_Width</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">getHeight</span><span class="p">()</span> <span class="k">const</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">m_Height</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">toString</span><span class="p">()</span> <span class="k">const</span> <span class="k">override</span>
+	<span class="p">{</span>
+		<span class="n">std</span><span class="o">::</span><span class="n">stringstream</span> <span class="n">ss</span><span class="p">;</span>
+		<span class="n">ss</span> <span class="o">&lt;&lt;</span> <span class="s">"WindowResizeEvent: "</span> <span class="o">&lt;&lt;</span> <span class="n">m_Width</span> <span class="o">&lt;&lt;</span> <span class="s">", "</span> <span class="o">&lt;&lt;</span> <span class="n">m_Height</span><span class="p">;</span>
+		<span class="k">return</span> <span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">();</span>
+	<span class="p">}</span>
+
+	<span class="n">EVENT_CLASS_TYPE</span><span class="p">(</span><span class="n">WINDOW_RESIZE</span><span class="p">);</span>
+	<span class="n">EVENT_CLASS_CATEGORY</span><span class="p">(</span><span class="n">EVENT_CATEGORY_APP</span><span class="p">);</span>
+
+  <span class="nl">private:</span>
+	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">m_Width</span><span class="p">,</span> <span class="n">m_Height</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>이벤트 타입과 카테고리를 설정하는 코드는 어차피 모든 이벤트 클래스에서 동일하게 진행되기 때문에 매크로를 활용해 반복되는 코드를 줄였다. 
+이렇게 밑작업을 하면 이벤트 별로 가지고 있는 특수한 속성만 정의해주면 된다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="cp">#define EVENT_CLASS_TYPE(type)                                                                                         \
+	static EEventType getStaticType()                                                                                  \
+	{                                                                                                                  \
+		return EEventType::type;                                                                                       \
+	}                                                                                                                  \
+	virtual EEventType getEventType() const override                                                                   \
+	{                                                                                                                  \
+		return getStaticType();                                                                                        \
+	}                                                                                                                  \
+	virtual const char *getName() const override                                                                       \
+	{                                                                                                                  \
+		return #type;                                                                                                  \
+	}
+</span>
+<span class="cp">#define EVENT_CLASS_CATEGORY(category)                                                                                 \
+	virtual int getCategoryFlags() const override                                                                      \
+	{                                                                                                                  \
+		return category;                                                                                               \
+	}
+</span>
+</code></pre></div></div>
+
+<h4 id="glfw-callback-호출-lambda-함수-이벤트-객체-생성">GLFW Callback 호출, Lambda 함수, 이벤트 객체 생성</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c1">// 창에 저장되어 있는 사용자 정의 데이터</span>
+<span class="n">glfwSetWindowUserPointer</span><span class="p">(</span><span class="n">m_Window</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">m_Data</span><span class="p">);</span>
+
+<span class="c1">// Lambda 함수 호출</span>
+<span class="n">glfwSetWindowSizeCallback</span><span class="p">(</span><span class="n">m_Window</span><span class="p">,</span> <span class="p">[](</span><span class="n">GLFWwindow</span> <span class="o">*</span><span class="n">window</span><span class="p">,</span> <span class="kt">int32_t</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int32_t</span> <span class="n">height</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">WindowData</span> <span class="o">&amp;</span><span class="n">data</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">WindowData</span> <span class="o">*</span><span class="p">)</span><span class="n">glfwGetWindowUserPointer</span><span class="p">(</span><span class="n">window</span><span class="p">);</span>
+    <span class="n">data</span><span class="p">.</span><span class="n">width</span> <span class="o">=</span> <span class="n">width</span><span class="p">;</span>
+    <span class="n">data</span><span class="p">.</span><span class="n">height</span> <span class="o">=</span> <span class="n">height</span><span class="p">;</span>
+
+    <span class="c1">// 이벤트 객체 생성</span>
+    <span class="n">WindowResizeEvent</span> <span class="n">event</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
+    <span class="n">data</span><span class="p">.</span><span class="n">eventCallback</span><span class="p">(</span><span class="n">event</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>이렇게 하면 창이 resize 됐을 때 WindowResizeEvent 객체를 생성하고, eventCallback에 생성된 객체를 매핑할 수 있다. EventCallback을 구현하기 위해 std::function을 활용했다. std::function은 함수 포인터와 다르게 함수를 객체처럼 사용할 수 있게 C++에 도입된 기능이다. 함수, 람다, 멤버 함수 등 Callable한 것을 하나의 타입으로 다룰 수 있다. Window 객체에 std::function&lt;void(Event &amp;)&gt; 형태로 EventCallback을 정의해놓고, 생성된 이벤트 객체를 매개변수로 매핑했다.</p>
+
+<h4 id="이벤트-전파">이벤트 전파</h4>
+<p>이벤트를 생성했다면 내가 원하는 함수가 호출되게 만들어야 한다. 그래서 이벤트를 전파하는 클래스를 정의했다. dispatch 함수는 이벤트 타입 비교 후, 타입이 일치한다면 함수가 실행되게 만들었다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">EventDispatcher</span>
+<span class="p">{</span>
+  <span class="nl">public:</span>
+	<span class="n">EventDispatcher</span><span class="p">(</span><span class="n">Event</span> <span class="o">&amp;</span><span class="n">event</span><span class="p">)</span> <span class="o">:</span> <span class="n">m_Event</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+	<span class="p">{</span>
+	<span class="p">}</span>
+
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">F</span><span class="p">&gt;</span> <span class="kt">bool</span> <span class="n">dispatch</span><span class="p">(</span><span class="k">const</span> <span class="n">F</span> <span class="o">&amp;</span><span class="n">func</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">m_Event</span><span class="p">.</span><span class="n">getEventType</span><span class="p">()</span> <span class="o">==</span> <span class="n">T</span><span class="o">::</span><span class="n">getStaticType</span><span class="p">())</span>
+		<span class="p">{</span>
+			<span class="n">m_Event</span><span class="p">.</span><span class="n">m_Handled</span> <span class="o">|=</span> <span class="n">func</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="n">T</span> <span class="o">&amp;&gt;</span><span class="p">(</span><span class="n">m_Event</span><span class="p">));</span>
+			<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+		<span class="p">}</span>
+		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+	<span class="p">}</span>
+
+  <span class="nl">private:</span>
+	<span class="n">Event</span> <span class="o">&amp;</span><span class="n">m_Event</span><span class="p">;</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<p>이벤트를 처리하기 위한 모든 구성요소가 만들어졌다.</p>
+
+<p>EventCallback을 가지고 있는 객체는 Window이지만, Window를 관리하는 객체는 App이다. 엔진의 가장 상위단인 App에서 Window을 생성하고, Window의 EventCallback으로 App의 onEvent 함수를 등록해준다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">App</span><span class="o">::</span><span class="n">App</span><span class="p">(...)</span> <span class="o">:</span> <span class="p">...</span>
+<span class="p">{</span>
+    <span class="c1">// ...</span>
+	
+    <span class="n">m_Window</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">Window</span><span class="o">&gt;</span><span class="p">(</span><span class="n">Window</span><span class="o">::</span><span class="n">create</span><span class="p">());</span>
+	<span class="n">m_Window</span><span class="o">-&gt;</span><span class="n">setEventCallback</span><span class="p">(</span><span class="n">AL_BIND_EVENT_FN</span><span class="p">(</span><span class="n">App</span><span class="o">::</span><span class="n">onEvent</span><span class="p">));</span>
+
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">App</span><span class="o">::</span><span class="n">onEvent</span><span class="p">(</span><span class="n">Event</span> <span class="o">&amp;</span><span class="n">e</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">EventDispatcher</span> <span class="n">dispatcher</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+	<span class="n">dispatcher</span><span class="p">.</span><span class="n">dispatch</span><span class="o">&lt;</span><span class="n">WindowCloseEvent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">AL_BIND_EVENT_FN</span><span class="p">(</span><span class="n">App</span><span class="o">::</span><span class="n">onWindowClose</span><span class="p">));</span>
+	<span class="n">dispatcher</span><span class="p">.</span><span class="n">dispatch</span><span class="o">&lt;</span><span class="n">WindowResizeEvent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">AL_BIND_EVENT_FN</span><span class="p">(</span><span class="n">App</span><span class="o">::</span><span class="n">onWindowResize</span><span class="p">));</span>
+
+	<span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="정리">정리</h2>
+
+<h4 id="초기화">초기화</h4>
+<p><strong>App 생성 -&gt; Window 생성 -&gt; GLFW Callback 함수와 Lambda 함수 매핑</strong></p>
+
+<h4 id="이벤트-전파-과정">이벤트 전파 과정</h4>
+<p><strong>GLFW Callback 함수 호출 -&gt; Lambda 함수 실행 -&gt; 이벤트 객체 생성 -&gt; -&gt; App::onEvent 실행 -&gt; EventDispatcher가 Event 전파</strong></p>
+
+<p>글을 적다보니 초기화 과정부터 설명하는 게 뒤의 과정을 이해하는 데 훨씬 수월했을 것 같다. 하지만 초기화 과정부터 설명하려면 App이 어떻게 초기화되고 그 과정에서 또 어떤 일이 일어나는지 설명하는 포스트를 작성해야 할 것 같았기 때문에 이 정도로 끝내겠다.</p>
+
+<p>Event System을 구현하는 과정에서 std::function, Lambda function, std::bind, std::forward 등 C++의 여러 기능들에 대해 배울 수 있어 좋았다. 이를 어떻게 하면 잘 활용할 수 있을지에 대한 포스트는 나중에 따로 적어보려고 한다.</p>
+
+<p>또 배운 점은 확장성 있는 코드를 작성하려면 추상화 - 구체화 과정이 필수적이라는 점이다. 이를 활용하면 모든 OS, Graphics API를 지원하는 코드를 작성할 수 있을 것이다.</p>
+
+<p>다음에는 엔진의 핵심인 ECS에 관한 포스트로 돌아오겠다!</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>Game Engine Architecture - Engine Loop</b></h1>
+
+    <p class="post-metadata text-muted">
+      12 April 2025 -  
+      <b>3 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#game-engine">
+          <span class="tag badge badge-pill text-primary border border-primary">Game Engine</span>
+        </a>
+        </p>
+
+    <h2 id="alengine-loop">ALEngine Loop</h2>
+<p>AfterLife 엔진의 구성이 어떻게 이루어져 있는지 지지난번 포스트를 통해 설명했었다. 오늘은 엔진의 초기화, 업데이트 루프가 어떻게 진행되는지에 대해 얘기해보려고 한다. 처음에 엔진 공부를 시작할 때, 어떻게 흐름을 구성할지 고민을 정말 많이 했었다. 고민 끝에 내린 결론은 “내가 가장 많이 사용해본 엔진인 Unity의 흐름을 공부하고 그대로 따라해보자!”는 것이었다.</p>
+
+<h2 id="unity의-update-frame-처리-순서">Unity의 Update Frame 처리 순서</h2>
+<p>Unity의 프레임 처리를 크게 나누면 다음과 같다.</p>
+<h4 id="1-입력-처리">1. 입력 처리</h4>
+<ul>
+  <li>키보드, 마우스 등 입력 데이터 처리</li>
+</ul>
+
+<h4 id="2-time-값-갱신">2. Time 값 갱신</h4>
+<ul>
+  <li>Time.deltaTime, Time.time 시간 관련 변수들 갱신</li>
+</ul>
+
+<h4 id="3-fixedupdate-호출">3. FixedUpdate() 호출</h4>
+<ul>
+  <li>고정 시간 간격으로 실행</li>
+  <li>Rigidbody, Force, Collision 같은 물리 연산 처리</li>
+</ul>
+
+<h4 id="4-physics-처리">4. Physics 처리</h4>
+<ul>
+  <li>Rigidbody, Collider 등 계산 실행</li>
+  <li>충돌, 위치 이동 등 보정</li>
+</ul>
+
+<h4 id="5-update-호출">5. Update() 호출</h4>
+<ul>
+  <li>매 프레임 실행됨</li>
+  <li>입력 처리, 게임 로직, Animation Trigger 등에 사용</li>
+</ul>
+
+<h4 id="6-animator-처리">6. Animator 처리</h4>
+<ul>
+  <li>Animation 연산 처리(Transition, Blending, etc)</li>
+</ul>
+
+<h4 id="7-lateupdate-호출">7. LateUpdate() 호출</h4>
+<ul>
+  <li>Update 후 실행</li>
+  <li>카메라 따라가기 같은 후처리를 위해 사용</li>
+</ul>
+
+<h4 id="8-coroutine-처리">8. Coroutine 처리</h4>
+<ul>
+  <li>yield return로 규정된 시간이 되면 다시 건너가며 실행</li>
+</ul>
+
+<h4 id="9-rendering">9. Rendering</h4>
+
+<h2 id="alengine-update-frame">ALEngine Update Frame</h2>
+<p>위의 흐름을 참고해 ALEngine의 흐름을 Edit 상태와 Play 상태로 나누어 구분했다. Play 상태는 Editor의 Play 버튼을 눌렀을 때를 의미하고, Edit 상태는 평소의 상태를 의미한다.</p>
+
+<h3 id="edit-loop">Edit Loop</h3>
+<p><img src="/assets/OnUpdateEdit.png" alt="EditLoop" /></p>
+
+<h4 id="카메라-위치-시점-선택">카메라 위치, 시점 선택</h4>
+<p>Scene을 어디서 바라볼지 정하는 과정이다. 영화를 찍을 때 감독이 큐 사인을 내리면 카메라로 장면을 촬영하는 것과 비슷하다고 생각하면 쉽다. 카메라는 평소에는 EditorCamera, Play에는 SceneCamera를 사용해 시점을 다르게 보여준다.</p>
+
+<h4 id="가시성-판단-최적화">가시성 판단, 최적화</h4>
+<p>Frustum Culling을 사용해 카메라의 시야 범위 밖에 있는 물체들은 렌더링 시 Draw 호출을 하지 않는다. CPU를 덜 쓸 수 있다는 점에서 아주 중요한 최적화이다.</p>
+
+<h3 id="update-loop">Update Loop</h3>
+<p><img src="/assets/OnUpdatePlay.png" alt="UpdateLoop" /></p>
+
+<h4 id="게임-로직-처리">게임 로직 처리</h4>
+<p>오브젝트에 부착된 Script가 실시간으로 적용되게 처리한다. 게임이 어떻게 돌아가는지 실질적으로 정의되어 있는 부분이다. 영화로 치면 각 배우의 대사, 그리고 배우 간 상호작용이라고 생각할 수 있겠다.</p>
+
+<h4 id="물리-계산-및-결과-업데이트">물리 계산 및 결과 업데이트</h4>
+<p>Rigidbody, Collision에 해당하는 물리 연산 처리를 해준다.</p>
+
+<h4 id="애니메이션-업데이트">애니메이션 업데이트</h4>
+<p>State Manager, Blending 등을 통해 애니메이션을 처리한다.</p>
+
+<h2 id="고려했던-점">고려했던 점</h2>
+
+<h4 id="멀티쓰레드">멀티쓰레드</h4>
+<p>“엔진이 싱글 쓰레드로 돌아가도 문제 없을까?” 라는 생각을 많이 했었다. ALEngine은 렌더링, 물리 연산, 애니메이션, 스크립트 기능이 구현되어 있는 간단한 엔진이다. 그렇기 때문에 이 정도 기능으로 부하가 안 생길거야! 라는 생각으로 멀티 쓰레딩을 구현하지 않았다. 하지만 Scene을 엄청나게 많은 Box Collider로 구성하면 부하가 많이 생긴다! 많은 물리 연산 -&gt; 프레임 간 간격 증가 -&gt; Duration 증가 -&gt; 부정확한 물리 처리 이렇게 악순환이 반복됐었다. 이 악순환을 해소하려면 예전에 Broadphase 포스트의 마지막에서 얘기했던 것처럼 Fixed Duration 처리 + 물리 연산용 쓰레드로 최적화해야 한다.</p>
+
+<h4 id="카메라가-없을-때">카메라가 없을 때</h4>
+<p>Editor Camera는 항상 존재하지만, Scene에 있는 Camera를 없애면 Play를 눌렀을 때 아무것도 안 보여야하지 않을까? Unity를 시험해봤을 때, Scene Camera를 없애면 다음과 같이 나온다.</p>
+
+<p><img src="https://europe1.discourse-cdn.com/unity/original/3X/4/c/4c094899eed4fded2a651c1e50a00089b607ec2e.png" alt="NoCam" /></p>
+
+<p>그래서 ALEngine도 비슷하게 처리했다. 우리 렌더링 팀원 surkim이 손수 제작한 이미지다…</p>
+
+<p><img src="/assets/nocam.png" alt="ALNoCam" /></p>
+
+<h4 id="frustum-culling">Frustum Culling</h4>
+<p>Frustum Culling은 카메라에 따라 절두체 공간을 계산하고, Culling을 할지 말지 결정했다.</p>
+
+<div class="language-cmake highlighter-rouge"><div class="highlight"><pre class="highlight"><code>void Renderer::<span class="nf">beginScene</span><span class="p">(</span>Scene *scene, Camera &amp;camera<span class="p">)</span>
+{
+	camera.<span class="nf">setAspectRatio</span><span class="p">(</span>viewPortSize.x / viewPortSize.y<span class="p">)</span>;
+	projMatrix = camera.<span class="nf">getProjection</span><span class="p">()</span>;
+	viewMatirx = camera.<span class="nf">getView</span><span class="p">()</span>;
+
+    // 절두체 계산
+	scene-&gt;<span class="nf">frustumCulling</span><span class="p">(</span>camera.<span class="nf">getFrustum</span><span class="p">())</span>;
+	<span class="nf">drawFrame</span><span class="p">(</span>scene<span class="p">)</span>;
+
+	scene-&gt;<span class="nf">initFrustumDrawFlag</span><span class="p">()</span>;
+}
+
+
+// Draw 호출
+MeshRendererComponent &amp;meshRendererComponent = view.get&lt;MeshRendererComponent&gt;<span class="p">(</span>entity<span class="p">)</span>;
+<span class="nb">if</span> <span class="p">(</span>meshRendererComponent.cullState == ECullState::RENDER<span class="p">)</span>
+{
+    meshRendererComponent.m_RenderingComponent-&gt;<span class="nf">draw</span><span class="p">(</span>drawInfo<span class="p">)</span>;
+}
+
+</code></pre></div></div>
+
+<p>약간 아쉬웠던 점은 처음부터 Frustum Culling을 고려하고 코드를 설계한 게 아니라, 구현 과정에서 정말 많이 터졌었다. 특히 MeshRendererComponent를 추가하거나 삭제하는 과정에서 동기화가 잘 안되는 문제가 있었다. 이는 Culling을 구현한 seonjo와 함께 MeshRenderer를 추가, 삭제하는 모든 부분에서 Culling에 관한 속성을 어떻게 관리할지 상의 후 해결했었다.</p>
+
+<p>오늘은 ALEngine의 큰 흐름에 대해 설명해보았다. 당시에 고민했던 점들이 좀 더 드러나는 글이면 좋겠지만, 메모를 해놓은 게 많지 않아 더 자세히 쓸 수 없는 점이 아쉽다. 앞으로 포스트들은 프로젝트를 진행하면서 조금씩 쓰는 게 좋을 것 같다. 그래도 ALEngine에 관해 최대한 자세히 기록하고, 여러 방면으로 고민했던 점들을 떠올리고자 노력해볼 것이다. 다음은 “Event System”으로 돌아오겠다!</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

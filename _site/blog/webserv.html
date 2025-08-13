@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>Webserv</b></h1>
+
+    <p class="post-metadata text-muted">
+      11 June 2025 -  
+      <b>4 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#network">
+          <span class="tag badge badge-pill text-primary border border-primary">Network</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#http">
+          <span class="tag badge badge-pill text-primary border border-primary">HTTP</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#tcp-ip">
+          <span class="tag badge badge-pill text-primary border border-primary">TCP/IP</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#server">
+          <span class="tag badge badge-pill text-primary border border-primary">Server</span>
+        </a>
+        </p>
+
+    <h2 id="webserv---nginx-202406--202407">Webserv - nginx (2024/06 ~ 2024/07)</h2>
+<p>Webserv 프로젝트는 42Seoul의 네트워크 과제 중 하나로, HTTP 1.1을 준수하는 웹 서버를 만드는 프로젝트이다. Minishell 이후로 가장 규모가 큰 프로젝트로, 웹에서 클라이언트와 서버가 어떤 방식으로 상호작용하는지 공부해 볼 수 있어 큰 의미가 있었다. Webserv를 진행하며 무엇을 공부했고, 내가 어떤 부분을 구현했는지 차근차근 설명해보겠다.</p>
+
+<p><img src="/assets/webserv.gif" alt="webserv gif" /></p>
+
+<p>⸻</p>
+
+<p>웹 서버를 구현하기 위해 먼저 알아야 할 개념은 웹의 통신 방식인 HTTP, 그리고 실제 통신을 위해 사용되는 소켓, 포트에 대한 것이다. 이론적인 부분에 대해 하나씩 설명하겠다.</p>
+
+<h2 id="http">HTTP</h2>
+<p>HTTP(HyperText Transfer Protocol)는 <strong>웹에서 클라이언트와 서버가 통신할 때 사용하는 규칙(프로토콜)</strong>이다. 사용자가 웹 브라우저를 통해 웹 페이지를 요청하면, HTTP는 이 요청을 서버로 전달하고, 서버는 해당 요청에 대한 응답을 HTTP를 통해 되돌려준다.</p>
+
+<p>HTTP 통신은 다음과 같은 흐름으로 이루어진다:</p>
+
+<ol>
+  <li><strong>클라이언트가 특정 URL(예: https://example.com)에 접근한다.</strong></li>
+  <li><strong>클라이언트는 HTTP 요청을 생성하여 서버에 전송한다.</strong></li>
+  <li><strong>서버는 요청을 처리하고, HTML 문서나 이미지, JSON 데이터 등을 HTTP 응답으로 돌려준다.</strong></li>
+  <li><strong>클라이언트는 응답을 해석하여 화면에 표시하거나, 후속 동작을 수행한다.</strong></li>
+</ol>
+
+<p>이처럼 HTTP는 인터넷 상에서 정보를 주고받기 위한 기본적인 메커니즘이며, 우리가 흔히 말하는 “Web”은 이 HTTP 위에서 작동하는 서비스의 집합이다.</p>
+
+<p><img src="https://media.geeksforgeeks.org/wp-content/uploads/20240529150129/HTTP-.gif" alt="Http Connection" /></p>
+
+<p><sub>이미지 출처: <a href="https://www.geeksforgeeks.org/http-full-form/">https://www.geeksforgeeks.org/http-full-form/</a></sub></p>
+
+<h3 id="web의-구조">Web의 구조</h3>
+
+<p>“Web”, 정확히는 “World Wide Web(WWW)“은 인터넷을 기반으로 하여 HTTP 프로토콜을 이용해 하이퍼텍스트 문서를 주고받는 시스템이다. 사용자는 웹 브라우저를 통해 다양한 정보에 접근하고, 이 과정은 HTTP를 통해 서버와 통신함으로써 이루어진다.</p>
+
+<p><strong>웹의 구성 요소</strong></p>
+
+<ul>
+  <li>클라이언트(Client): 사용자의 웹 브라우저로, 웹 페이지나 자원을 요청한다.</li>
+  <li>서버(Server): 요청을 처리하고, 그에 맞는 응답을 클라이언트에 전달한다.</li>
+  <li>프로토콜(Protocol): 클라이언트와 서버 간의 소통 규칙으로, HTTP를 사용한다.</li>
+</ul>
+
+<h3 id="web-server의-역할">Web Server의 역할</h3>
+
+<p>웹 서버(Web Server)는 HTTP 요청을 수신하고, HTTP 응답을 반환하는 프로그램 혹은 시스템이다. 브라우저에서 웹 페이지를 요청하면, 웹 서버는 해당 요청을 받아 적절한 HTML, 이미지, 또는 동적 데이터를 클라이언트에게 돌려준다.</p>
+
+<p><strong>웹 서버의 주요 역할</strong></p>
+
+<ul>
+  <li>요청 수신(Request Handling): 클라이언트가 보낸 요청을 받아들인다.</li>
+  <li>자원 처리(Resource Serving): 요청된 경로에 따라 정적 파일을 읽거나 동적으로 데이터를 생성한다.</li>
+  <li>응답 반환(Response Sending): 처리 결과를 HTTP 형식에 맞춰 응답한다.</li>
+  <li>로깅 및 보안 처리: 접근 기록을 남기고, 권한 확인 등의 보안 처리를 수행한다.</li>
+</ul>
+
+<p>대표적인 웹 서버로는 Apache, Nginx, Lighttpd 등이 있으며, Webserv 프로젝트는 이러한 서버의 핵심 기능을 직접 구현하는 데에 목적이 있다.</p>
+
+<h3 id="tcpip와-http의-관계">TCP/IP와 HTTP의 관계</h3>
+<p>HTTP는 애플리케이션 계층의 프로토콜로, 실제로 데이터를 주고받기 위해서는 그 아래 계층인 TCP/IP 프로토콜 스택의 도움을 받는다. 즉, HTTP는 혼자서 동작할 수 없으며, TCP/IP 위에서 동작한다.</p>
+
+<p><strong>웹 브라우저가 서버에 HTTP 요청을 보내기 위해 거치는 과정</strong></p>
+
+<ol>
+  <li>사용자가 웹 브라우저에서 <code class="language-plaintext highlighter-rouge">https://example.com</code>을 입력한다.</li>
+  <li>브라우저는 DNS를 통해 도메인에 해당하는 IP 주소를 조회한다.</li>
+  <li>조회한 IP 주소로 TCP 연결을 시도한다. (3-way handshake)</li>
+  <li>TCP 연결이 성공하면, 그 위에 HTTP 요청을 전송한다.</li>
+  <li>서버는 HTTP 응답을 TCP를 통해 클라이언트에게 돌려준다.</li>
+  <li>필요에 따라 연결을 유지하거나 종료한다.</li>
+</ol>
+
+<p>여기서 중요한 점은,</p>
+
+<ul>
+  <li><strong>TCP(Transmission Control Protocol)</strong>는 신뢰성 있는 데이터 전송을 보장한다. 패킷이 순서대로 도착하며, 손실된 데이터는 재전송된다.</li>
+  <li><strong>IP(Internet Protocol)</strong>는 패킷이 목적지에 도달할 수 있도록 라우팅을 담당한다.</li>
+</ul>
+
+<p>따라서 HTTP는 TCP의 안정적인 전송 기능을 바탕으로 동작하는 고수준 프로토콜이라고 할 수 있다.</p>
+
+<p>⸻</p>
+
+<h2 id="소켓-통신과-포트">소켓 통신과 포트</h2>
+<p>HTTP 요청과 응답은 실제로 <strong>소켓(Socket)</strong>이라는 통신 추상화를 통해 주고받는다. 소켓은 네트워크를 통해 데이터를 송수신하기 위한 인터페이스로, 운영체제 수준에서 제공된다.</p>
+
+<h3 id="소켓이란">소켓이란?</h3>
+<p>소켓은 IP 주소와 포트 번호를 결합하여 통신 상대를 식별하고, 데이터를 송수신할 수 있도록 하는 통신 인터페이스다.
+운영체제는 소켓을 통해 네트워크 연결을 생성하고 관리하며, 애플리케이션은 이를 통해 데이터를 주고받는다.</p>
+
+<ul>
+  <li>클라이언트는 서버의 IP와 포트 번호를 사용해 연결을 시도하고,</li>
+  <li>서버는 특정 포트에 소켓을 바인딩한 뒤, 들어오는 연결 요청을 수신 대기한다.</li>
+</ul>
+
+<p>하나의 프로세스는 여러 개의 소켓을 생성하고 관리할 수 있다.
+예를 들어 웹 서버는 클라이언트마다 별도의 연결 소켓을 생성하여 동시 접속을 처리한다.</p>
+
+<h3 id="포트란">포트란?</h3>
+
+<p>하나의 컴퓨터(즉, IP 주소) 안에서도 다양한 프로그램이 네트워크 통신을 하기 때문에, 각 애플리케이션은 <strong>포트 번호(0~65535)</strong>를 통해 구분된다.</p>
+
+<p>일반적으로 다음과 같은 포트가 사용된다:</p>
+
+<ul>
+  <li>80번 포트: HTTP 기본 포트</li>
+  <li>443번 포트: HTTPS (HTTP over TLS/SSL)</li>
+  <li>21번 포트: FTP</li>
+  <li>22번 포트: SSH</li>
+</ul>
+
+<p>즉, 클라이언트가 http://example.com에 접속하면, 내부적으로는 example.com:80에 TCP 연결을 생성하고, 그 위에서 HTTP 요청을 보낸다.</p>
+
+<h3 id="webserv에서의-소켓-통신">Webserv에서의 소켓 통신</h3>
+
+<p>Webserv 프로젝트에서도 실제로 다음과 같은 흐름으로 소켓을 사용하게 된다:</p>
+
+<ol>
+  <li>socket() 시스템 호출을 통해 서버 소켓을 생성한다.</li>
+  <li>bind()를 통해 특정 포트(예: 8080)에 소켓을 연결한다.</li>
+  <li>listen()으로 클라이언트 연결을 받을 준비를 한다.</li>
+  <li>accept()를 통해 실제 연결을 수락한다.</li>
+  <li>이후 read() / write() 또는 recv() / send()로 데이터를 주고받는다.</li>
+</ol>
+
+<p>이처럼 소켓은 웹 서버 구현의 핵심이며, TCP/IP 프로토콜과 직접적으로 연결되는 계층이다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">⸻ 
+</code></p>
+<h2 id="마무리">마무리</h2>
+<p>이 글에서는 웹 서버를 구현하기 전에 반드시 이해해야 할 HTTP, TCP/IP, 소켓, 포트의 개념을 정리하였다.<br />
+Webserv 프로젝트는 이러한 기초 위에 설계되며, 이후 구현 과정에서 만나는 다양한 세부 기술들도 이 기반을 바탕으로 동작하게 된다. 다음 글에서는 다수의 클라이언트 요청을 효율적으로 처리하기 위한 방식인 <strong>IO multiplexing(select, poll, epoll)</strong>에 대해 다룰 예정이다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>Scene, Editor</b></h1>
+
+    <p class="post-metadata text-muted">
+      25 April 2025 -  
+      <b>30 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#game-engine">
+          <span class="tag badge badge-pill text-primary border border-primary">Game Engine</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#imgui">
+          <span class="tag badge badge-pill text-primary border border-primary">ImGui</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#yaml-cpp">
+          <span class="tag badge badge-pill text-primary border border-primary">yaml-cpp</span>
+        </a>
+        </p>
+
+    <h2 id="scene">Scene</h2>
+<p>지난 포스트까지 ALEngine Architecture에 대한 설명을 마쳤다. 오늘 포스트는 Scene Load System와 ImGui를 이용해 만든 Editor에 대한 것이다.</p>
+
+<p>게임엔진에서 Scene은 일반적으로 하나의 게임 레벨, 맵, 또는 월드를 구성하는 모든 객체와 데이터의 집합을 의미한다. 플레이어가 보는 하나의 “화면 속 세계” 전체를 의미한다고 볼 수 있다. 보통 Scene은 JSON, YAML 형식 등으로 저장되어 있고 엔진은 Scene 파일을 해석해 객체와 그것을 이루고 있는 데이터들을 만들어낸다.</p>
+
+<hr />
+
+<h4 id="unity의-scene">Unity의 Scene</h4>
+<p>Unity의 Scene 파일은 .unity 확장자를 가지며, 해당 Scene에 배치된 모든 게임 오브젝트와 컴포넌트의 정보를 저장하고 있다. 내부 구조는 YAML 또는 바이너리로 이루어져 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="na">GameObject</span><span class="pi">:</span>
+  <span class="na">m_ObjectHideFlags</span><span class="pi">:</span> <span class="m">0</span>
+  <span class="na">m_CorrespondingSourceObject</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">fileID</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">}</span>
+  <span class="na">m_PrefabInstance</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">fileID</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">}</span>
+  <span class="na">m_Name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Player"</span>
+  <span class="na">m_Components</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">component</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">fileID</span><span class="pi">:</span> <span class="nv">1234</span><span class="pi">}</span>
+    <span class="pi">-</span> <span class="na">component</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">fileID</span><span class="pi">:</span> <span class="nv">5678</span><span class="pi">}</span>
+  <span class="na">m_Transform</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">fileID</span><span class="pi">:</span> <span class="nv">91011</span><span class="pi">}</span>
+
+<span class="na">Transform</span><span class="pi">:</span>
+  <span class="na">m_LocalPosition</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">x</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">y</span><span class="pi">:</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">z</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">}</span>
+  <span class="na">m_LocalRotation</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">x</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">y</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">z</span><span class="pi">:</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">w</span><span class="pi">:</span> <span class="nv">1</span><span class="pi">}</span>
+  <span class="na">m_LocalScale</span><span class="pi">:</span> <span class="pi">{</span><span class="nv">x</span><span class="pi">:</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">y</span><span class="pi">:</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">z</span><span class="pi">:</span> <span class="nv">1</span><span class="pi">}</span>
+
+</code></pre></div></div>
+<hr />
+
+<h3 id="alengine의-scene">ALEngine의 Scene</h3>
+<p>ALEngine은 Unity의 Scene 파일처럼 Scene을 구성하기로 했다. 확장자는 .ale를 갖고, 내부 구조는 YAML 형식이다.</p>
+
+<p>Scene의 구조는 간단하다. Scene 이름, Entity들의 정보, 각 Entity를 이루고 있는 Component의 정보들로 이루어져 있다.</p>
+
+<p>Scene을 바이너리로 관리했다면 용량 감소, 속도 향상, 보안성 등 여러 면에서 좋았겠지만 텍스트로 관리하면, Scene 파일을 직접 편집할 수도 있고, 평가하는 사람이 보기에도 더 편하기 때문에 굳이 바이너리로 만들지는 않았다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="na">Scene</span><span class="pi">:</span> <span class="s">3DExmaple</span>
+<span class="na">Entities</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">Entity</span><span class="pi">:</span> <span class="m">16143175189520029819</span>
+    <span class="na">TagComponent</span><span class="pi">:</span>
+      <span class="na">Tag</span><span class="pi">:</span> <span class="s">Plane</span>
+    <span class="na">TransformComponent</span><span class="pi">:</span>
+      <span class="na">Position</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">-3</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Rotation</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">-1.57079637</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Scale</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">30</span><span class="pi">,</span> <span class="nv">30</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">]</span>
+    <span class="na">RelationshipComponent</span><span class="pi">:</span>
+      <span class="na">Parent</span><span class="pi">:</span> <span class="m">0</span>
+      <span class="na">Children</span><span class="pi">:</span>
+        <span class="pi">[]</span>
+    <span class="na">MeshRendererComponent</span><span class="pi">:</span>
+      <span class="na">MeshType</span><span class="pi">:</span> <span class="m">3</span>
+      <span class="na">MatPath</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+      <span class="na">IsMatChanged</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="pi">-</span> <span class="na">Entity</span><span class="pi">:</span> <span class="m">3406970704759287418</span>
+    <span class="na">TagComponent</span><span class="pi">:</span>
+      <span class="na">Tag</span><span class="pi">:</span> <span class="s">Scene Camera</span>
+    <span class="na">TransformComponent</span><span class="pi">:</span>
+      <span class="na">Position</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Rotation</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Scale</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">]</span>
+    <span class="na">RelationshipComponent</span><span class="pi">:</span>
+      <span class="na">Parent</span><span class="pi">:</span> <span class="m">0</span>
+      <span class="na">Children</span><span class="pi">:</span>
+        <span class="pi">[]</span>
+    <span class="na">CameraComponent</span><span class="pi">:</span>
+      <span class="na">Camera</span><span class="pi">:</span>
+        <span class="na">PerspectiveFOV</span><span class="pi">:</span> <span class="m">0.785398185</span>
+        <span class="na">PerspectiveNear</span><span class="pi">:</span> <span class="m">0.00100000005</span>
+        <span class="na">PerspectiveFar</span><span class="pi">:</span> <span class="m">1000</span>
+      <span class="na">Primary</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">FixedAspectRatio</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="pi">-</span> <span class="na">Entity</span><span class="pi">:</span> <span class="m">13031684749665374615</span>
+    <span class="na">TagComponent</span><span class="pi">:</span>
+      <span class="na">Tag</span><span class="pi">:</span> <span class="s">Directional Light</span>
+    <span class="na">TransformComponent</span><span class="pi">:</span>
+      <span class="na">Position</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Rotation</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Scale</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">]</span>
+    <span class="na">RelationshipComponent</span><span class="pi">:</span>
+      <span class="na">Parent</span><span class="pi">:</span> <span class="m">0</span>
+      <span class="na">Children</span><span class="pi">:</span>
+        <span class="pi">[]</span>
+    <span class="na">LightComponent</span><span class="pi">:</span>
+      <span class="na">Type</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">ShadowMap</span><span class="pi">:</span> <span class="m">1</span>
+      <span class="na">Position</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Direction</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0.200000003</span><span class="pi">,</span> <span class="nv">-1</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Color</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">]</span>
+      <span class="na">Intensity</span><span class="pi">:</span> <span class="m">1</span>
+      <span class="na">InnerCutoff</span><span class="pi">:</span> <span class="m">0.976296008</span>
+      <span class="na">OuterCutoff</span><span class="pi">:</span> <span class="m">0.953716934</span>
+  <span class="pi">-</span> <span class="na">Entity</span><span class="pi">:</span> <span class="m">24453836486531026</span>
+    <span class="na">TagComponent</span><span class="pi">:</span>
+      <span class="na">Tag</span><span class="pi">:</span> <span class="s">Sphere</span>
+    <span class="na">TransformComponent</span><span class="pi">:</span>
+      <span class="na">Position</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Rotation</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">,</span> <span class="nv">0</span><span class="pi">]</span>
+      <span class="na">Scale</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">,</span> <span class="nv">1</span><span class="pi">]</span>
+    <span class="na">RelationshipComponent</span><span class="pi">:</span>
+      <span class="na">Parent</span><span class="pi">:</span> <span class="m">0</span>
+      <span class="na">Children</span><span class="pi">:</span>
+        <span class="pi">[]</span>
+    <span class="na">MeshRendererComponent</span><span class="pi">:</span>
+      <span class="na">MeshType</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">MatPath</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+      <span class="na">IsMatChanged</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="scene-serialize-deserialize">Scene Serialize, Deserialize</h2>
+<p>Scene의 정보를 효과적으로 저장하고 엔진 상에 띄우려면 적절하게 직렬화, 역직렬화를 해주어야 한다. 직렬화(Serialization)는 데이터를 저장하거나 전송 가능한 형태로 변환하는 과정을 의미한다. 반대로 역직렬화(Deserialization)는 직렬화된 데이터를 다시 원래의 상태로 복원하는 과정이다. 단순하게 직렬화는 저장, 역직렬화는 불러오기 기능이라고 생각해도 된다. 이를 구현하려면 텍스트로 저장된 Scene 파일을 파싱하는 작업이 필요하다. 나는 yaml-cpp 라이브러리를 사용해 .ale 파일을 파싱했다.</p>
+
+<p>직접 파서를 구현해보는 것도 좋은 경험이었겠지만, 우리 프로젝트는 제한된 기간 내에 완성하는 것이 목표였기 때문에 직접 구현하지는 않았다. yaml-cpp에 내가 필요로 하는 기능만 추가해 사용했다. glm::vec, UUID(커스텀 클래스)을 직렬화, 역직렬화 하기 위해 encode, decode 기능 특수화를 진행했다.</p>
+
+<h4 id="구현">구현</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c1">// Serialize 함수</span>
+<span class="kt">void</span> <span class="n">SceneSerializer</span><span class="o">::</span><span class="n">serialize</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">filepath</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">YAML</span><span class="o">::</span><span class="n">Emitter</span> <span class="n">out</span><span class="p">;</span>
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">BeginMap</span><span class="p">;</span>
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Scene"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="s">"Untitled"</span><span class="p">;</span>
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Entities"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">BeginSeq</span><span class="p">;</span>
+	<span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">view</span><span class="o">&lt;</span><span class="n">entt</span><span class="o">::</span><span class="n">entity</span><span class="o">&gt;</span><span class="p">().</span><span class="n">each</span><span class="p">([</span><span class="o">&amp;</span><span class="p">](</span><span class="k">auto</span> <span class="n">entityID</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">Entity</span> <span class="n">entity</span><span class="p">{</span><span class="n">entityID</span><span class="p">,</span> <span class="n">m_Scene</span><span class="p">.</span><span class="n">get</span><span class="p">()};</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">entity</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="k">return</span><span class="p">;</span>
+		<span class="p">}</span>
+		<span class="n">serializeEntity</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">m_Scene</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+	<span class="p">});</span>
+
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">EndSeq</span><span class="p">;</span>
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">EndMap</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">ofstream</span> <span class="n">fout</span><span class="p">(</span><span class="n">filepath</span><span class="p">);</span>
+	<span class="n">fout</span> <span class="o">&lt;&lt;</span> <span class="n">out</span><span class="p">.</span><span class="n">c_str</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">static</span> <span class="kt">void</span> <span class="n">serializeEntity</span><span class="p">(</span><span class="n">YAML</span><span class="o">::</span><span class="n">Emitter</span> <span class="o">&amp;</span><span class="n">out</span><span class="p">,</span> <span class="n">Entity</span> <span class="n">entity</span><span class="p">,</span> <span class="n">Scene</span> <span class="o">*</span><span class="n">scene</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">BeginMap</span><span class="p">;</span>
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Entity"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="n">entity</span><span class="p">.</span><span class="n">getUUID</span><span class="p">();</span>
+
+	<span class="c1">// KEY, KEY - VALUE</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">entity</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"TagComponent"</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">BeginMap</span><span class="p">;</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tag</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">().</span><span class="n">m_Tag</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Tag"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="n">tag</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">EndMap</span><span class="p">;</span> <span class="c1">// Tag</span>
+	<span class="p">}</span>
+
+	<span class="c1">// TransformComponent</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">entity</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"TransformComponent"</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">BeginMap</span><span class="p">;</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tf</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Position"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">m_Position</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Rotation"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">m_Rotation</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Key</span> <span class="o">&lt;&lt;</span> <span class="s">"Scale"</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">Value</span> <span class="o">&lt;&lt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">m_Scale</span><span class="p">;</span>
+		<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">EndMap</span><span class="p">;</span> <span class="c1">// Transform</span>
+	<span class="p">}</span>
+
+    <span class="c1">// ...</span>
+
+	<span class="n">out</span> <span class="o">&lt;&lt;</span> <span class="n">YAML</span><span class="o">::</span><span class="n">EndMap</span><span class="p">;</span> <span class="c1">// End Serialize Entity</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c1">// Deserialize 함수</span>
+<span class="kt">bool</span> <span class="n">SceneSerializer</span><span class="o">::</span><span class="n">deserialize</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">filepath</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">YAML</span><span class="o">::</span><span class="n">Node</span> <span class="n">data</span><span class="p">;</span>
+
+	<span class="k">try</span>
+	<span class="p">{</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">YAML</span><span class="o">::</span><span class="n">LoadFile</span><span class="p">(</span><span class="n">filepath</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">catch</span> <span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">exception</span> <span class="o">&amp;</span><span class="n">e</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">AL_CORE_ERROR</span><span class="p">(</span><span class="s">"Failed to load .ale file '{0}'</span><span class="se">\n</span><span class="s">    {1}"</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">());</span>
+		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Scene</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">data</span><span class="p">[</span><span class="s">"Scene"</span><span class="p">])</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="c1">// Entities</span>
+	<span class="k">auto</span> <span class="n">entities</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">"Entities"</span><span class="p">];</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">entities</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">entity</span> <span class="o">:</span> <span class="n">entities</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="c1">// IDComponent</span>
+			<span class="kt">uint64_t</span> <span class="n">uuid</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s">"Entity"</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="kt">uint64_t</span><span class="o">&gt;</span><span class="p">();</span>
+
+			<span class="c1">// TagComponent</span>
+			<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">name</span><span class="p">;</span>
+			<span class="k">auto</span> <span class="n">tagComponent</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s">"TagComponent"</span><span class="p">];</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">tagComponent</span><span class="p">)</span>
+			<span class="p">{</span>
+				<span class="n">name</span> <span class="o">=</span> <span class="n">tagComponent</span><span class="p">[</span><span class="s">"Tag"</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;</span><span class="p">();</span>
+			<span class="p">}</span>
+
+			<span class="n">AL_CORE_TRACE</span><span class="p">(</span><span class="s">"Entity deserialized as ID: {0}, Tag: {1}"</span><span class="p">,</span> <span class="n">uuid</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+
+			<span class="n">Entity</span> <span class="n">deserializedEntity</span> <span class="o">=</span> <span class="n">m_Scene</span><span class="o">-&gt;</span><span class="n">createEntityWithUUID</span><span class="p">(</span><span class="n">uuid</span><span class="p">,</span> <span class="n">name</span><span class="p">);</span>
+
+			<span class="c1">// TransformComponent</span>
+			<span class="k">auto</span> <span class="n">tfComponent</span> <span class="o">=</span> <span class="n">entity</span><span class="p">[</span><span class="s">"TransformComponent"</span><span class="p">];</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">tfComponent</span><span class="p">)</span>
+			<span class="p">{</span>
+				<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tf</span> <span class="o">=</span> <span class="n">deserializedEntity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">();</span>
+				<span class="n">tf</span><span class="p">.</span><span class="n">m_Position</span> <span class="o">=</span> <span class="n">tfComponent</span><span class="p">[</span><span class="s">"Position"</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="o">&gt;</span><span class="p">();</span>
+				<span class="n">tf</span><span class="p">.</span><span class="n">m_Rotation</span> <span class="o">=</span> <span class="n">tfComponent</span><span class="p">[</span><span class="s">"Rotation"</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="o">&gt;</span><span class="p">();</span>
+				<span class="n">tf</span><span class="p">.</span><span class="n">m_Scale</span> <span class="o">=</span> <span class="n">tfComponent</span><span class="p">[</span><span class="s">"Scale"</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="o">&gt;</span><span class="p">();</span>
+				<span class="n">tf</span><span class="p">.</span><span class="n">m_WorldTransform</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">getTransform</span><span class="p">();</span>
+			<span class="p">}</span>
+			<span class="c1">// ...</span>
+        <span class="p">}</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">namespace</span> <span class="n">YAML</span>
+<span class="p">{</span>
+<span class="c1">// 템플릿 특수화</span>
+<span class="k">template</span> <span class="o">&lt;</span><span class="p">&gt;</span> <span class="k">struct</span> <span class="nc">convert</span><span class="o">&lt;</span><span class="n">glm</span><span class="o">::</span><span class="n">vec3</span><span class="o">&gt;</span>
+<span class="p">{</span>
+	<span class="k">static</span> <span class="n">Node</span> <span class="n">encode</span><span class="p">(</span><span class="k">const</span> <span class="n">glm</span><span class="o">::</span><span class="n">vec3</span> <span class="o">&amp;</span><span class="n">rhs</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">Node</span> <span class="n">node</span><span class="p">;</span>
+		<span class="n">node</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">rhs</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+		<span class="n">node</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">rhs</span><span class="p">.</span><span class="n">y</span><span class="p">);</span>
+		<span class="n">node</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">rhs</span><span class="p">.</span><span class="n">z</span><span class="p">);</span>
+		<span class="n">node</span><span class="p">.</span><span class="n">SetStyle</span><span class="p">(</span><span class="n">EmitterStyle</span><span class="o">::</span><span class="n">Flow</span><span class="p">);</span>
+		<span class="k">return</span> <span class="n">node</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="k">static</span> <span class="kt">bool</span> <span class="n">decode</span><span class="p">(</span><span class="k">const</span> <span class="n">Node</span> <span class="o">&amp;</span><span class="n">node</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">vec3</span> <span class="o">&amp;</span><span class="n">rhs</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">node</span><span class="p">.</span><span class="n">IsSequence</span><span class="p">()</span> <span class="o">||</span> <span class="n">node</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">)</span>
+			<span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+
+		<span class="n">rhs</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="n">rhs</span><span class="p">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="n">rhs</span><span class="p">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="n">as</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+	<span class="p">}</span>
+<span class="p">};</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="p">&gt;</span> <span class="k">struct</span> <span class="nc">convert</span><span class="o">&lt;</span><span class="n">ale</span><span class="o">::</span><span class="n">UUID</span><span class="o">&gt;</span>
+<span class="p">{</span>
+	<span class="k">static</span> <span class="n">Node</span> <span class="n">encode</span><span class="p">(</span><span class="k">const</span> <span class="n">ale</span><span class="o">::</span><span class="n">UUID</span> <span class="o">&amp;</span><span class="n">uuid</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">Node</span> <span class="n">node</span><span class="p">;</span>
+		<span class="n">node</span><span class="p">.</span><span class="n">push_back</span><span class="p">((</span><span class="kt">uint64_t</span><span class="p">)</span><span class="n">uuid</span><span class="p">);</span>
+		<span class="k">return</span> <span class="n">node</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="k">static</span> <span class="kt">bool</span> <span class="n">decode</span><span class="p">(</span><span class="k">const</span> <span class="n">Node</span> <span class="o">&amp;</span><span class="n">node</span><span class="p">,</span> <span class="n">ale</span><span class="o">::</span><span class="n">UUID</span> <span class="o">&amp;</span><span class="n">uuid</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">uuid</span> <span class="o">=</span> <span class="n">node</span><span class="p">.</span><span class="n">as</span><span class="o">&lt;</span><span class="kt">uint64_t</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+	<span class="p">}</span>
+<span class="p">};</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="editor">Editor</h2>
+<p>실시간으로 scene의 구성 요소를 편집할 수 있게 gui를 만들었다. 구성 요소의 계층 구조를 표현하는 Scene Hierarchy, Entity의 속성을 자세히 보여주는 Inspector, 프로젝트의 리소스를 시각적으로 보여주는 Content Browser Panel을 만들었다. Editor를 개발할 때 주요 목표는 클릭, 드래그 &amp; 드롭 등 손쉬운 동작을 통해 Scene을 편집할 수 있게 하는 것이었다. 또한 렌더링 담당인 surkim과 물리 시뮬레이션 담당인 seonjo가 자신이 만든 기능을 바로 테스트 해볼 수 있게 만드는 것도 중요했다.</p>
+
+<h4 id="scene-hierarchy">Scene Hierarchy</h4>
+<p>Scene Hierarchy는 게임이나 애플리케이션에서 Scene을 구성하는 Entity 들의 계층적 구조를 의미한다. 부모-자식 관계(parent-child relationship)으로 오브젝트들이 연결된다. 한 오브젝트가 이동하거나 변형(transform)되면, 그 자식들도 같이 영향을 받는다. 트리(Tree) 형태로 구성되어, 복잡한 장면을 논리적으로 관리할 수 있게 한다.</p>
+
+<p>Scene Hierarchy를 구현하기 위해 SceneHierarchyPanel이라는 클래스를 만들었고, 해당 클래스가 담당한 기능은 다음과 같다.</p>
+
+<h4 id="1-scene을-구성하는-entity-이름-표시">1. Scene을 구성하는 Entity 이름 표시</h4>
+<p>Entity의 tagComponent 정보를 가져와 ImGui를 통해 이름을 표시할 수 있게 했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">void</span> <span class="n">SceneHierarchyPanel</span><span class="o">::</span><span class="n">drawEntityNode</span><span class="p">(</span><span class="n">Entity</span> <span class="n">entity</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tag</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">().</span><span class="n">m_Tag</span><span class="p">;</span>
+
+	<span class="n">ImGuiTreeNodeFlags</span> <span class="n">flags</span> <span class="o">=</span>
+		<span class="p">((</span><span class="n">m_SelectionContext</span> <span class="o">==</span> <span class="n">entity</span><span class="p">)</span> <span class="o">?</span> <span class="n">ImGuiTreeNodeFlags_Selected</span> <span class="o">:</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="n">ImGuiTreeNodeFlags_OpenOnArrow</span><span class="p">;</span>
+	<span class="n">flags</span> <span class="o">|=</span> <span class="n">ImGuiTreeNodeFlags_SpanAvailWidth</span><span class="p">;</span> <span class="c1">// 선택 영역이 가장자리까지 넓어지게 설정</span>
+	<span class="kt">bool</span> <span class="n">opened</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">TreeNodeEx</span><span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)(</span><span class="kt">uint64_t</span><span class="p">)(</span><span class="kt">uint32_t</span><span class="p">)</span><span class="n">entity</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">tag</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+
+	<span class="c1">// ...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="2-계층-구조부모---자식-관계-표현">2. 계층 구조(부모 - 자식 관계) 표현</h4>
+<p>부모 - 자식 관계를 표현하기 위해 RelationshipComponent를 만들었고, Component에는 부모와 자식의 정보를 보관할 수 있게 했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * @struct RelationshipComponent
+ * @brief 개체 간의 부모-자식 관계를 정의하는 컴포넌트.
+ */</span>
+<span class="k">struct</span> <span class="nc">RelationshipComponent</span>
+<span class="p">{</span>
+	<span class="n">entt</span><span class="o">::</span><span class="n">entity</span> <span class="n">parent</span> <span class="o">=</span> <span class="n">entt</span><span class="o">::</span><span class="n">null</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">entt</span><span class="o">::</span><span class="n">entity</span><span class="o">&gt;</span> <span class="n">children</span><span class="p">;</span>
+
+	<span class="n">RelationshipComponent</span><span class="p">()</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+	<span class="n">RelationshipComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">RelationshipComponent</span> <span class="o">&amp;</span><span class="p">)</span> <span class="o">=</span> <span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>Scene Hierarchy에서 Entity를 클릭했을 때 부모 Entity가 자식을 가지고 있다면, 자식 Entity들의 이름도 표시되게 했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">if</span> <span class="p">(</span><span class="n">opened</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">auto</span> <span class="o">&amp;</span><span class="n">relation</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">RelationshipComponent</span><span class="o">&gt;</span><span class="p">();</span>
+	<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">child</span> <span class="o">:</span> <span class="n">relation</span><span class="p">.</span><span class="n">children</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">Entity</span> <span class="n">entity</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">m_Context</span><span class="p">.</span><span class="n">get</span><span class="p">());</span>
+		<span class="n">drawEntityNode</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">TreePop</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>한 Entity를 다른 Entity의 자식으로 넣거나, Entity가 소유하고 있는 자식을 없애는 등 Relationship을 업데이트하는 기능을 드래그 &amp; 드롭으로 구현했다.</p>
+
+<p>ImGui는 내부적으로 UI들을 서로 구분하기 위해 ID를 사용하는데, 방법이 여러가지가 있다. 텍스트(label)을 ID로 쓰거나, PushID/PopID로 명시적으로 감싸거나 직접 문자열을 ID로 지정할 수 있다.
+3가지 방법을 모두 사용해보았는데, 상황마다 좋은 방법이 다르다고 생각했다. 문자열의 경우는 비효율적이지 않나라는 생각이 들었는데, 내부에서 해싱해 관리한다고 하니 괜찮다고 한다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginDragDropSource</span><span class="p">())</span>
+<span class="p">{</span>
+	<span class="n">Entity</span> <span class="n">e</span> <span class="o">=</span> <span class="n">entity</span><span class="p">;</span>
+	<span class="c1">// 문자열("EntityPayload")로 ID 설정</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">SetDragDropPayload</span><span class="p">(</span><span class="s">"EntityPayload"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">e</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">Entity</span><span class="p">));</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">Text</span><span class="p">(</span><span class="s">"%s"</span><span class="p">,</span> <span class="n">tag</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">EndDragDropSource</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginDragDropTarget</span><span class="p">())</span>
+<span class="p">{</span>
+	<span class="c1">// "EntityPayload" 로 드래그 앤 드롭 UI 식별.</span>
+	<span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">ImGuiPayload</span> <span class="o">*</span><span class="n">payload</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">AcceptDragDropPayload</span><span class="p">(</span><span class="s">"EntityPayload"</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="n">Entity</span> <span class="o">*</span><span class="n">droppedEntity</span> <span class="o">=</span> <span class="p">(</span><span class="n">Entity</span> <span class="o">*</span><span class="p">)</span><span class="n">payload</span><span class="o">-&gt;</span><span class="n">Data</span><span class="p">;</span>
+		<span class="c1">// droppedEntity가 entity의 자식이 되도록 설정</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="o">*</span><span class="n">droppedEntity</span> <span class="o">!=</span> <span class="n">entity</span><span class="p">)</span>
+			<span class="n">updateRelationship</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="o">*</span><span class="n">droppedEntity</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">EndDragDropTarget</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="n">SceneHierarchyPanel</span><span class="o">::</span><span class="n">updateRelationship</span><span class="p">(</span><span class="n">Entity</span> <span class="o">&amp;</span><span class="n">newParent</span><span class="p">,</span> <span class="n">Entity</span> <span class="o">&amp;</span><span class="n">child</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="c1">// 1. 기존 부모에게서 제거</span>
+	<span class="k">auto</span> <span class="o">&amp;</span><span class="n">childRelation</span> <span class="o">=</span> <span class="n">child</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">RelationshipComponent</span><span class="o">&gt;</span><span class="p">();</span>
+	<span class="n">entt</span><span class="o">::</span><span class="n">entity</span> <span class="n">oldParent</span> <span class="o">=</span> <span class="n">childRelation</span><span class="p">.</span><span class="n">parent</span><span class="p">;</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">oldParent</span> <span class="o">!=</span> <span class="n">entt</span><span class="o">::</span><span class="n">null</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">oldParentRelation</span> <span class="o">=</span> <span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">m_Registry</span><span class="p">.</span><span class="n">get</span><span class="o">&lt;</span><span class="n">RelationshipComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="n">oldParent</span><span class="p">);</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">siblings</span> <span class="o">=</span> <span class="n">oldParentRelation</span><span class="p">.</span><span class="n">children</span><span class="p">;</span>
+		<span class="n">siblings</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">remove</span><span class="p">(</span><span class="n">siblings</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">siblings</span><span class="p">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">child</span><span class="p">),</span> <span class="n">siblings</span><span class="p">.</span><span class="n">end</span><span class="p">());</span>
+	<span class="p">}</span>
+
+	<span class="c1">// 2. 새 부모로 교체</span>
+	<span class="n">childRelation</span><span class="p">.</span><span class="n">parent</span> <span class="o">=</span> <span class="p">(</span><span class="n">entt</span><span class="o">::</span><span class="n">entity</span><span class="p">)</span><span class="n">newParent</span><span class="p">;</span>
+
+	<span class="c1">// 3. 새 부모의 children 목록에 추가</span>
+	<span class="k">auto</span> <span class="o">&amp;</span><span class="n">parentRelation</span> <span class="o">=</span> <span class="n">newParent</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">RelationshipComponent</span><span class="o">&gt;</span><span class="p">();</span>
+	<span class="n">parentRelation</span><span class="p">.</span><span class="n">children</span><span class="p">.</span><span class="n">push_back</span><span class="p">((</span><span class="n">entt</span><span class="o">::</span><span class="n">entity</span><span class="p">)</span><span class="n">child</span><span class="p">);</span>
+
+	<span class="c1">// 4. 자식의 위치를 부모 기준 local좌표로 변환</span>
+	<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tc</span> <span class="o">=</span> <span class="n">child</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">();</span>
+	<span class="n">glm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">parentWorld</span> <span class="o">=</span> <span class="n">newParent</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">().</span><span class="n">m_WorldTransform</span><span class="p">;</span> <span class="c1">// 부모의 월드 매트릭스</span>
+	<span class="n">glm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">childWorld</span> <span class="o">=</span> <span class="n">child</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TransformComponent</span><span class="o">&gt;</span><span class="p">().</span><span class="n">m_WorldTransform</span><span class="p">;</span>	   <span class="c1">// 자식의 현재 월드 매트릭스</span>
+	<span class="n">glm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">childLocalMat</span> <span class="o">=</span> <span class="n">glm</span><span class="o">::</span><span class="n">inverse</span><span class="p">(</span><span class="n">parentWorld</span><span class="p">)</span> <span class="o">*</span> <span class="n">childWorld</span><span class="p">;</span>
+
+	<span class="n">decomposeMatrix</span><span class="p">(</span><span class="n">childLocalMat</span><span class="p">,</span> <span class="n">tc</span><span class="p">.</span><span class="n">m_Scale</span><span class="p">,</span> <span class="n">tc</span><span class="p">.</span><span class="n">m_Rotation</span><span class="p">,</span> <span class="n">tc</span><span class="p">.</span><span class="n">m_Position</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h4 id="3-각종-편의-기능3d-object-entity-추가-삭제">3. 각종 편의 기능(3D Object, Entity 추가, 삭제)</h4>
+<p>Entity를 Scene 상에 쉽게 추가하고 삭제할 수 있게 구현했다. 또한 기본 도형(Sphere, Box, Plane, Cylinder, Capsule)도 쉽게 추가할 수 있게 기능을 만들었다. 원래라면 Entity 생성, MeshRendererComponent 추가, meshtype 설정 이렇게 과정을 거쳐야 하는데, 한 번에 원하는 도형을 볼 수 있게 구현했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c1">// 오른쪽 클릭으로 Popup 활성화</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginPopupContextWindow</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ImGuiPopupFlags_MouseButtonRight</span> <span class="o">|</span> <span class="n">ImGuiPopupFlags_NoOpenOverItems</span><span class="p">))</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Create Empty"</span><span class="p">))</span>
+		<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createEntity</span><span class="p">(</span><span class="s">"Empty"</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginMenu</span><span class="p">(</span><span class="s">"3D Object"</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Box"</span><span class="p">))</span>
+			<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="s">"Box"</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Sphere"</span><span class="p">))</span>
+			<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="s">"Sphere"</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Plane"</span><span class="p">))</span>
+			<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="s">"Plane"</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Ground"</span><span class="p">))</span>
+			<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="s">"Ground"</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Capsule"</span><span class="p">))</span>
+			<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="s">"Capsule"</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Cylinder"</span><span class="p">))</span>
+			<span class="n">m_Context</span><span class="o">-&gt;</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="s">"Cylinder"</span><span class="p">,</span> <span class="mi">6</span><span class="p">);</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">EndMenu</span><span class="p">();</span>
+	<span class="p">}</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">EndPopup</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="n">Entity</span> <span class="n">Scene</span><span class="o">::</span><span class="n">createPrimitiveMeshEntity</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">name</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">idx</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">Entity</span> <span class="n">entity</span> <span class="o">=</span> <span class="n">createEntity</span><span class="p">(</span><span class="n">name</span><span class="p">);</span>
+
+	<span class="k">auto</span> <span class="o">&amp;</span><span class="n">mc</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">addComponent</span><span class="o">&lt;</span><span class="n">MeshRendererComponent</span><span class="o">&gt;</span><span class="p">();</span>
+	
+	<span class="c1">// Scene이 생성될 때, 기본 도형을 만들어 보관한다.</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Model</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">model</span> <span class="o">=</span> <span class="n">getDefaultModel</span><span class="p">(</span><span class="n">idx</span><span class="p">);</span>
+
+	<span class="n">mc</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">idx</span><span class="p">;</span>
+	<span class="n">mc</span><span class="p">.</span><span class="n">m_RenderingComponent</span> <span class="o">=</span> <span class="n">RenderingComponent</span><span class="o">::</span><span class="n">createRenderingComponent</span><span class="p">(</span><span class="n">model</span><span class="p">);</span>
+	<span class="n">mc</span><span class="p">.</span><span class="n">cullSphere</span> <span class="o">=</span> <span class="n">mc</span><span class="p">.</span><span class="n">m_RenderingComponent</span><span class="o">-&gt;</span><span class="n">getCullSphere</span><span class="p">();</span>
+
+	<span class="n">insertEntityInCullTree</span><span class="p">(</span><span class="n">entity</span><span class="p">);</span>
+
+	<span class="k">return</span> <span class="n">entity</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<h4 id="inspector">Inspector</h4>
+<p>Inspector는 Entity가 갖고 있는 Component들을 자세히 확인할 수 있는 UI이다. Component들을 그리는 UI에 관한 코드를 작성하다보면, 반복적으로 생기는 코드가 많았다. 이를 줄이기 위해 템플릿 함수를 적극적으로 활용했다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="c1">// drawEntityNode에서 작성</span>
+<span class="n">ImGui</span><span class="o">::</span><span class="n">Begin</span><span class="p">(</span><span class="s">"Inspector"</span><span class="p">);</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">m_SelectionContext</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">drawComponents</span><span class="p">(</span><span class="n">m_SelectionContext</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="n">ImGui</span><span class="o">::</span><span class="n">End</span><span class="p">();</span>
+
+</code></pre></div></div>
+
+<p>템플릿을 사용했음에도 불구하고, drawComponents() 함수는 약 1000줄이 된다. 이는 반복적으로 사용하는 UI를 따로 함수로 만들지 않거나, Component마다 사용하는 UI를 모듈화하지 않고 한 군데에 모두 작성했기 때문일 것이다. 간단히 맥락만 소개하겠다.</p>
+
+<h4 id="tag--checkbox">Tag &amp; Checkbox</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">void</span> <span class="n">SceneHierarchyPanel</span><span class="o">::</span><span class="n">drawComponents</span><span class="p">(</span><span class="n">Entity</span> <span class="n">entity</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">entity</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tc</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tc</span><span class="p">.</span><span class="n">m_Tag</span><span class="p">;</span>
+
+		<span class="kt">char</span> <span class="n">buffer</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+		<span class="n">memset</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+		<span class="n">strncpy_s</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">),</span> <span class="n">tag</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">));</span>
+
+		<span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">label</span> <span class="o">=</span> <span class="s">"##Tag"</span> <span class="o">+</span> <span class="n">std</span><span class="o">::</span><span class="n">to_string</span><span class="p">(</span><span class="n">entity</span><span class="p">.</span><span class="n">getUUID</span><span class="p">());</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">Checkbox</span><span class="p">(</span><span class="s">"##Active"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">tc</span><span class="p">.</span><span class="n">m_selfActive</span><span class="p">))</span>
+		<span class="p">{</span>
+			<span class="c1">// 자식 엔티티일 경우 부모의 effective 활성 상태를 사용하여 업데이트</span>
+			<span class="kt">bool</span> <span class="n">parentEffectiveActive</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+			<span class="k">auto</span> <span class="o">&amp;</span><span class="n">rc</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">RelationshipComponent</span><span class="o">&gt;</span><span class="p">();</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">rc</span><span class="p">.</span><span class="n">parent</span> <span class="o">!=</span> <span class="n">entt</span><span class="o">::</span><span class="n">null</span><span class="p">)</span>
+			<span class="p">{</span>
+				<span class="n">Entity</span> <span class="n">parent</span><span class="p">{</span><span class="n">rc</span><span class="p">.</span><span class="n">parent</span><span class="p">,</span> <span class="n">m_Context</span><span class="p">.</span><span class="n">get</span><span class="p">()};</span>
+				<span class="n">parentEffectiveActive</span> <span class="o">=</span> <span class="n">parent</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">TagComponent</span><span class="o">&gt;</span><span class="p">().</span><span class="n">m_isActive</span><span class="p">;</span>
+			<span class="p">}</span>
+			<span class="n">updateActiveInfo</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">parentEffectiveActive</span><span class="p">);</span>
+		<span class="p">}</span>
+
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">SameLine</span><span class="p">();</span>
+
+		<span class="c1">// ## 뒤의 text는 ImGui 내부의 ID로 사용.</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">InputText</span><span class="p">(</span><span class="n">label</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span> <span class="n">buffer</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">)))</span>
+		<span class="p">{</span>
+			<span class="n">tag</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+	<span class="c1">// ...</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>Inspector의 가장 위에는 Entity의 이름과 Checkbox가 있다. Checkbox는 해당 Entity가 Scene상에 표시될 것인지 확인하는 Box이다. 기본 값은 True로 설정되어 있다. Hierarchy 상에서 가장 윗단의 부모의 Checkbox가 비활성화 된다면, 자식들도 모두 비활성화 되어야 한다. updateActiveInfo() 함수를 통해 재귀적으로 구현했다.</p>
+
+<h4 id="add-component">Add Component</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="n">SceneHierarchyPanel</span><span class="o">::</span><span class="n">drawComponents</span><span class="p">(</span><span class="n">Entity</span> <span class="n">entity</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="c1">//...</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">Button</span><span class="p">(</span><span class="s">"Add Component"</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">OpenPopup</span><span class="p">(</span><span class="s">"AddComponent"</span><span class="p">);</span>
+	<span class="p">}</span>
+
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">SetNextWindowSizeConstraints</span><span class="p">(</span><span class="n">ImVec2</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span> <span class="n">ImVec2</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">400</span><span class="p">));</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginPopup</span><span class="p">(</span><span class="s">"AddComponent"</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">text</span> <span class="o">=</span> <span class="s">"Component"</span><span class="p">;</span>
+		<span class="kt">float</span> <span class="n">windowWidth</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">GetWindowSize</span><span class="p">().</span><span class="n">x</span><span class="p">;</span>
+		<span class="kt">float</span> <span class="n">textWidth</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">CalcTextSize</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="n">x</span><span class="p">;</span>
+		<span class="kt">float</span> <span class="n">textPosX</span> <span class="o">=</span> <span class="p">(</span><span class="n">windowWidth</span> <span class="o">-</span> <span class="n">textWidth</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span><span class="n">f</span><span class="p">;</span>
+
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">SetCursorPosX</span><span class="p">(</span><span class="n">textPosX</span><span class="p">);</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">Text</span><span class="p">(</span><span class="s">"%s"</span><span class="p">,</span> <span class="n">text</span><span class="p">);</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">Separator</span><span class="p">();</span>
+
+		<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">CameraComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Camera"</span><span class="p">);</span>
+		<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">ScriptComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Script"</span><span class="p">);</span>
+		<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">MeshRendererComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Mesh Renderer"</span><span class="p">);</span>
+		<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">LightComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Light"</span><span class="p">);</span>
+		<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">RigidbodyComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Rigidbody"</span><span class="p">);</span>
+		<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">SkeletalAnimatorComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Animator"</span><span class="p">);</span>
+
+		<span class="kt">bool</span> <span class="n">hasCollider</span> <span class="o">=</span> <span class="n">m_SelectionContext</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">BoxColliderComponent</span><span class="o">&gt;</span><span class="p">()</span> <span class="o">||</span>
+						   <span class="n">m_SelectionContext</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">SphereColliderComponent</span><span class="o">&gt;</span><span class="p">()</span> <span class="o">||</span>
+						   <span class="n">m_SelectionContext</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">CapsuleColliderComponent</span><span class="o">&gt;</span><span class="p">()</span> <span class="o">||</span>
+						   <span class="n">m_SelectionContext</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">CylinderColliderComponent</span><span class="o">&gt;</span><span class="p">();</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">hasCollider</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">BoxColliderComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Box Collider"</span><span class="p">);</span>
+			<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">SphereColliderComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Sphere Collider"</span><span class="p">);</span>
+			<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">CapsuleColliderComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Capsule Collider"</span><span class="p">);</span>
+			<span class="n">displayAddComponentEntry</span><span class="o">&lt;</span><span class="n">CylinderColliderComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Cylinder Collider"</span><span class="p">);</span>
+		<span class="p">}</span>
+
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">EndPopup</span><span class="p">();</span>
+	<span class="p">}</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">PopItemWidth</span><span class="p">();</span>
+
+	<span class="c1">//...</span>
+<span class="p">}</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="kt">void</span> <span class="n">SceneHierarchyPanel</span><span class="o">::</span><span class="n">displayAddComponentEntry</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">entryName</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">m_SelectionContext</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">Selectable</span><span class="p">(</span><span class="n">entryName</span><span class="p">.</span><span class="n">c_str</span><span class="p">()))</span>
+		<span class="p">{</span>
+			<span class="n">m_SelectionContext</span><span class="p">.</span><span class="n">addComponent</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span>
+			<span class="n">ImGui</span><span class="o">::</span><span class="n">CloseCurrentPopup</span><span class="p">();</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>Entity에 Component를 쉽게 추가할 수 있게 AddComponent Popup UI를 만들었다. Popup은 Component를 종류별로 추가할 수 있게 표시되고, Collider가 있다면 다른 종류의 Collider를 추가할 수 없게 구현했다. 여기서 displayAddComponentEntry는 반복되는 UI 코드를 줄이기 위해 
+템플릿으로 구현했다.</p>
+
+<h4 id="draw-component">draw Component</h4>
+<p>이제 Component 별로 UI를 작성해야 하는데, 기본 형식은 다음과 같다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">void</span> <span class="n">SceneHierarchyPanel</span><span class="o">::</span><span class="n">drawComponents</span><span class="p">(</span><span class="n">Entity</span> <span class="n">entity</span><span class="p">)</span>
+<span class="p">{</span>
+
+	<span class="n">drawComponent</span><span class="o">&lt;</span><span class="n">ComponentType</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"ComponentType"</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="p">[](</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">component</span><span class="p">)</span> <span class="p">{</span>
+		<span class="c1">// 그리고자 하는 UI</span>
+	<span class="p">});</span>
+<span class="p">}</span>
+
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">,</span> <span class="k">typename</span> <span class="nc">UIFunction</span><span class="p">&gt;</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="n">drawComponent</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">name</span><span class="p">,</span> <span class="n">Entity</span> <span class="n">entity</span><span class="p">,</span> <span class="n">UIFunction</span> <span class="n">uiFunction</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">const</span> <span class="n">ImGuiTreeNodeFlags</span> <span class="n">treeNodeFlags</span> <span class="o">=</span> <span class="n">ImGuiTreeNodeFlags_DefaultOpen</span> <span class="o">|</span> <span class="n">ImGuiTreeNodeFlags_Framed</span> <span class="o">|</span>
+											 <span class="n">ImGuiTreeNodeFlags_SpanAvailWidth</span> <span class="o">|</span> <span class="n">ImGuiTreeNodeFlags_AllowItemOverlap</span> <span class="o">|</span>
+											 <span class="n">ImGuiTreeNodeFlags_FramePadding</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">entity</span><span class="p">.</span><span class="n">hasComponent</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="k">auto</span> <span class="o">&amp;</span><span class="n">component</span> <span class="o">=</span> <span class="n">entity</span><span class="p">.</span><span class="n">getComponent</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span>
+		<span class="n">ImVec2</span> <span class="n">contentRegionAvailable</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">GetContentRegionAvail</span><span class="p">();</span>
+
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">PushStyleVar</span><span class="p">(</span><span class="n">ImGuiStyleVar_FramePadding</span><span class="p">,</span> <span class="n">ImVec2</span><span class="p">{</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">});</span>
+		<span class="kt">float</span> <span class="n">lineHeight</span> <span class="o">=</span> <span class="n">GImGui</span><span class="o">-&gt;</span><span class="n">Font</span><span class="o">-&gt;</span><span class="n">FontSize</span> <span class="o">+</span> <span class="n">GImGui</span><span class="o">-&gt;</span><span class="n">Style</span><span class="p">.</span><span class="n">FramePadding</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="mf">2.0</span><span class="n">f</span><span class="p">;</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">Separator</span><span class="p">();</span>
+		<span class="kt">bool</span> <span class="n">open</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">TreeNodeEx</span><span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="k">typeid</span><span class="p">(</span><span class="n">T</span><span class="p">).</span><span class="n">hash_code</span><span class="p">(),</span> <span class="n">treeNodeFlags</span><span class="p">,</span> <span class="n">name</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">PopStyleVar</span><span class="p">();</span>
+
+		<span class="c1">// 컴파일 타임에 타입 비교 수행</span>
+		<span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">std</span><span class="o">::</span><span class="n">is_same</span><span class="o">&lt;</span><span class="n">T</span><span class="p">,</span> <span class="n">TransformComponent</span><span class="o">&gt;::</span><span class="n">value</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="n">ImGui</span><span class="o">::</span><span class="n">SameLine</span><span class="p">(</span><span class="n">contentRegionAvailable</span><span class="p">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">lineHeight</span> <span class="o">*</span> <span class="mf">0.5</span><span class="n">f</span><span class="p">);</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">Button</span><span class="p">(</span><span class="s">"+"</span><span class="p">,</span> <span class="n">ImVec2</span><span class="p">{</span><span class="n">lineHeight</span><span class="p">,</span> <span class="n">lineHeight</span><span class="p">}))</span>
+			<span class="p">{</span>
+				<span class="n">ImGui</span><span class="o">::</span><span class="n">OpenPopup</span><span class="p">(</span><span class="s">"ComponentSettings"</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+
+		<span class="kt">bool</span> <span class="n">removeComponent</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginPopup</span><span class="p">(</span><span class="s">"ComponentSettings"</span><span class="p">))</span>
+		<span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">MenuItem</span><span class="p">(</span><span class="s">"Remove component"</span><span class="p">))</span>
+				<span class="n">removeComponent</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+
+			<span class="n">ImGui</span><span class="o">::</span><span class="n">EndPopup</span><span class="p">();</span>
+		<span class="p">}</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">open</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="n">uiFunction</span><span class="p">(</span><span class="n">component</span><span class="p">);</span>
+			<span class="n">ImGui</span><span class="o">::</span><span class="n">TreePop</span><span class="p">();</span>
+		<span class="p">}</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">removeComponent</span><span class="p">)</span>
+			<span class="n">entity</span><span class="p">.</span><span class="n">removeComponent</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="p">();</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>람다함수로 그리고자 하는 UI의 내용(UIFunction)을 작성하면 된다. 아주 간단한 예시 하나만 설명하겠다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="n">drawComponent</span><span class="o">&lt;</span><span class="n">CylinderColliderComponent</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"CylinderCollider"</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="p">[](</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">component</span><span class="p">)</span> <span class="p">{</span>
+
+	<span class="n">drawVec3Control</span><span class="p">(</span><span class="s">"Center"</span><span class="p">,</span> <span class="n">component</span><span class="p">.</span><span class="n">m_Center</span><span class="p">);</span>
+	<span class="n">drawFloatControl</span><span class="p">(</span><span class="s">"Radius"</span><span class="p">,</span> <span class="n">component</span><span class="p">.</span><span class="n">m_Radius</span><span class="p">);</span>
+	<span class="n">drawFloatControl</span><span class="p">(</span><span class="s">"Radius"</span><span class="p">,</span> <span class="n">component</span><span class="p">.</span><span class="n">m_Height</span><span class="p">);</span>
+	<span class="n">drawCheckBox</span><span class="p">(</span><span class="s">"IsTrigger"</span><span class="p">,</span> <span class="n">component</span><span class="p">.</span><span class="n">m_IsTrigger</span><span class="p">);</span>
+
+<span class="p">});</span>
+
+</code></pre></div></div>
+
+<p>CylinderCollider의 경우는 자주 사용하는 UI(vec3, Float, CheckBox)에 관한 것만 있어 내용이 단순하다. 하지만 MeshRendererComponent나 SkeletalAnimatorComponent, ScriptComponent 같은 경우는 작성해야 할 UI의 내용이 매우 많기 때문에 복잡하다. 처음에는 표시해야 할 내용이 많이 없어 하나의 cpp 파일에 작성하는 것이 큰 문제가 되지 않을 것이라 생각했는데, 나중에 다 완성하고 보니 너무 코드가 많고 지저분해 보였다. 다시 Editor를 만들게 될 일이 있다면, 코드를 좀 더 체계적으로 작성해야 할 것 같다.</p>
+
+<h4 id="content-browser">Content Browser</h4>
+<p>Content Browser는 게임 엔진 안에서 모든 리소스를 관리하는 도구이다. 리소스란 텍스처(texture), 메시(mesh), 사운드(sound), 애니메이션(animation), 스크립트(script), 레벨(scene) 등 게임에 필요한 모든 파일들을 의미한다. Content Browser의 주요 기능은 폴더 구조 탐색, 미리보기, 검색, 에셋 생성/삭제/이동 등이 있다.</p>
+
+<p>ALEngine의 Content Browser은 폴더 구조 탐색, 드래그 &amp; 드롭으로 material이나 texture, skybox 수정하기 기능이 있다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">void</span> <span class="n">ContentBrowserPanel</span><span class="o">::</span><span class="n">onImGuiRender</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="c1">// ...</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">m_CurrentDirectory</span> <span class="o">!=</span> <span class="n">std</span><span class="o">::</span><span class="n">filesystem</span><span class="o">::</span><span class="n">path</span><span class="p">(</span><span class="n">m_BaseDirectory</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">Button</span><span class="p">(</span><span class="s">"&lt;-"</span><span class="p">))</span>
+		<span class="p">{</span>
+			<span class="n">m_CurrentDirectory</span> <span class="o">=</span> <span class="n">m_CurrentDirectory</span><span class="p">.</span><span class="n">parent_path</span><span class="p">();</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="c1">// ...</span>
+
+	<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">directoryEntry</span> <span class="o">:</span> <span class="n">std</span><span class="o">::</span><span class="n">filesystem</span><span class="o">::</span><span class="n">directory_iterator</span><span class="p">(</span><span class="n">m_CurrentDirectory</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span><span class="n">path</span> <span class="o">=</span> <span class="n">directoryEntry</span><span class="p">.</span><span class="n">path</span><span class="p">();</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">IsItemHovered</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">IsMouseDoubleClicked</span><span class="p">(</span><span class="n">ImGuiMouseButton_Left</span><span class="p">))</span>
+		<span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">directoryEntry</span><span class="p">.</span><span class="n">is_directory</span><span class="p">())</span>
+				<span class="n">m_CurrentDirectory</span> <span class="o">/=</span> <span class="n">path</span><span class="p">.</span><span class="n">filename</span><span class="p">();</span>
+
+		<span class="p">}</span>
+	<span class="p">}</span>
+
+	<span class="c1">// ...</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>Content Browser 생성 시 BaseDirectory를 프로젝트가 진행되는 경로로 등록해주고, “&lt;-
+ 버튼을 누르면 현재 디렉토리의 부모로 갈 수 있게, 디렉토리 아이콘을 누르면 자식 디렉토리로 갈 수 있게 구현했다. 이번 프로젝트를 하며 std::filesystem에 대해 처음 알게 됐는데, 파일 시스템을 구현할 때 많이 편리하다고 느꼈다. “/” 연산자를 통해 경로를 더해 나간다거나, is_directory(), parent_path() 등 좋은 기능이 많았다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">directoryEntry</span> <span class="o">:</span> <span class="n">std</span><span class="o">::</span><span class="n">filesystem</span><span class="o">::</span><span class="n">directory_iterator</span><span class="p">(</span><span class="n">m_CurrentDirectory</span><span class="p">))</span>
+<span class="p">{</span>
+	<span class="k">const</span> <span class="k">auto</span> <span class="o">&amp;</span><span class="n">path</span> <span class="o">=</span> <span class="n">directoryEntry</span><span class="p">.</span><span class="n">path</span><span class="p">();</span>
+
+	<span class="n">ImTextureID</span> <span class="n">icon</span> <span class="o">=</span> <span class="n">directoryEntry</span><span class="p">.</span><span class="n">is_directory</span><span class="p">()</span> <span class="o">?</span> <span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">ImTextureID</span><span class="o">&gt;</span><span class="p">(</span><span class="n">directoryDescriptorSet</span><span class="p">)</span>
+														<span class="o">:</span> <span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="n">ImTextureID</span><span class="o">&gt;</span><span class="p">(</span><span class="n">fileDescriptorSet</span><span class="p">);</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">PushStyleColor</span><span class="p">(</span><span class="n">ImGuiCol_Button</span><span class="p">,</span> <span class="n">ImVec4</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">ImageButton</span><span class="p">(</span><span class="s">"Icon"</span><span class="p">,</span> <span class="n">icon</span><span class="p">,</span> <span class="p">{</span><span class="n">thumbnailSize</span><span class="p">,</span> <span class="n">thumbnailSize</span><span class="p">},</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">},</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">});</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginDragDropSource</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="n">std</span><span class="o">::</span><span class="n">filesystem</span><span class="o">::</span><span class="n">path</span> <span class="n">relativePath</span><span class="p">(</span><span class="n">path</span><span class="p">);</span>
+		<span class="k">const</span> <span class="kt">wchar_t</span> <span class="o">*</span><span class="n">itemPath</span> <span class="o">=</span> <span class="n">relativePath</span><span class="p">.</span><span class="n">c_str</span><span class="p">();</span>
+		<span class="c1">// KeyString - Value(itemPath) 어디서든 사용 가능</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">SetDragDropPayload</span><span class="p">(</span><span class="s">"CONTENT_BROWSER_ITEM"</span><span class="p">,</span> <span class="n">itemPath</span><span class="p">,</span> <span class="p">(</span><span class="n">wcslen</span><span class="p">(</span><span class="n">itemPath</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">wchar_t</span><span class="p">));</span>
+		<span class="n">ImGui</span><span class="o">::</span><span class="n">EndDragDropSource</span><span class="p">();</span>
+	<span class="p">}</span>
+
+<span class="p">}</span>
+
+<span class="c1">// SceneHierarchyPanel::drawComponents(Entity entity)</span>
+
+<span class="k">if</span> <span class="p">(</span><span class="n">ImGui</span><span class="o">::</span><span class="n">BeginDragDropTarget</span><span class="p">())</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="k">const</span> <span class="n">ImGuiPayload</span> <span class="o">*</span><span class="n">payload</span> <span class="o">=</span> <span class="n">ImGui</span><span class="o">::</span><span class="n">AcceptDragDropPayload</span><span class="p">(</span><span class="s">"CONTENT_BROWSER_ITEM"</span><span class="p">))</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+	<span class="n">ImGui</span><span class="o">::</span><span class="n">EndDragDropTarget</span><span class="p">();</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>현재 디렉토리를 순회하며 디렉토리이면 폴더 아이콘, 아닌 경우에는 파일 아이콘을 띄울 수 있게 했다. 그리고 드래그 &amp; 드롭의 키로 “CONTENT_BROWSER_ITEM”을 설정해 Scene Hierarchy에서 해당 source를 받아오면 target으로 인식할 수 있게 만들었다.</p>
+
+<p>더 추가하고 싶었던 기능은 C# 스크립트 파일을 더블 클릭했을 때 Visual Studio가 실행되게 하거나, gltf나 texture 파일을 미리 볼 수 있게 하거나 등이 있었다. 특히 후자의 경우를 구현하고 싶었는데, 이를 구현하려면 Vulkan 리소스 관리를 좀 더 체계적으로 해야되기 때문에 나중에 추가하기는 어려웠다.</p>
+
+<h2 id="정리">정리</h2>
+<p>이번 포스트에서는 Scene Load System, 그리고 ImGui를 활용한 에디터 구성—Scene Hierarchy, Inspector, Content Browser의 구현 방식을 소개했다.
+직접 구현을 하면서 느낀 점은, ECS(Entity-Component-System)를 엔진의 코어 시스템으로 선택한 것이 다양한 기능의 개발 난이도를 확실히 낮춰준다는 것이다. Scene이나 UI를 구성할 때, 별도의 상태를 따로 관리할 필요 없이 Entity와 Component를 저장하는 자료 구조에서 필요한 데이터를 가져와 시각화하면 되기 때문에, 구현이 간단해진다. 결국, 코어 시스템의 설계가 탄탄하면 할수록 유지보수성과 확장성 모두에서 큰 이점을 갖게 된다는 점을 다시 한 번 느꼈다.</p>
+
+<p>다음 포스트는 Scripting이다. 가장 어려움을 많이 겪었던 부분이기 때문에 최대한 자세하게 잘 정리해보려고 한다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

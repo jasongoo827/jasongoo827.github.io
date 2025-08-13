@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>I/O Multiplexing in Webserv</b></h1>
+
+    <p class="post-metadata text-muted">
+      17 June 2025 -  
+      <b>13 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#network">
+          <span class="tag badge badge-pill text-primary border border-primary">Network</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#multiplexing">
+          <span class="tag badge badge-pill text-primary border border-primary">Multiplexing</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#kqueue">
+          <span class="tag badge badge-pill text-primary border border-primary">kqueue</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#server">
+          <span class="tag badge badge-pill text-primary border border-primary">Server</span>
+        </a>
+        </p>
+
+    <h2 id="io-작업">I/O 작업</h2>
+<p>I/O Multiplexing에 대해 설명하기에 앞서, 먼저 I/O 작업이 무엇인지 이해할 필요가 있다. I/O는 Input/Ouput의 약자로, 입력과 출력을 의미한다. 여기서 입력이란 외부의 데이터를 받아오는 작업이며, 출력은 프로그램이 처리한 데이터를 외부로 내보내는 작업이다.
+네트워크 프로그래밍에서 I/O작업은 주로 socket을 통한 데이터 송수신을 의미한다. Linux/Unix 환경에서는 socket 또한 파일 즉, 파일 디스크립터(File Descriptor, FD)로 관리되기 때문에, 좀 더 넓은 관점에서 보면 이는 곧 서버와 클라이언트 간의 통신을 포함한 파일 입출력 처리 방식 전반에 대한 이야기라고 할 수 있다.</p>
+
+<p>결국 웹서버와 같은 네트워크 기반 애플리케이션에서 I/O 작업이란, <strong>“언제 어떤 방식으로 데이터를 주고받을 것인가?”</strong>를 정의하는 핵심적인 방식이라 할 수 있다.</p>
+
+<h2 id="기본개념">기본개념</h2>
+<p>앞서 언급했듯이, 네트워크 프로그램에서 I/O 작업은 데이터를 읽거나 쓰는 과정이다. I/O 작업은 user space에서 직접 수행할 수 없기 때문에, user process가 kernel에 I/O 작업을 요청하고 응답받는 구조이다.
+응답 받는 순서(Synchronous/Asynchronous), 받는 타이밍(Blocking/Non-Blocking)에 따라 여러 모델로 분류할 수 있다.</p>
+
+<p>⸻</p>
+<h3 id="synchronous">Synchronous</h3>
+<ul>
+  <li>모든 I/O 작업이 일련의 순서를 가지고 진행된다.</li>
+  <li>작업 완료를 user space에서 판단해, 다음 작업을 언제 요청할지 결정한다.</li>
+</ul>
+
+<h3 id="asynchronous">Asynchronous</h3>
+<ul>
+  <li>kernel에 I/O 작업을 요청하고 다른 작업을 할 수 있으나, 순서가 보장되지는 않는다.</li>
+  <li>작업 완료를 kernel space에서 통보해 준다.</li>
+</ul>
+
+<p><img src="https://evan-moon.github.io/static/e075bee6dfcc71a33568cd0ef7b6f61c/dc0d9/thumbnail.webp" alt="Sync&amp;Async" />
+<sub>이미지 출처: <a href="https://www.geeksforgeeks.org/http-full-form/">https://evan-moon.github.io/2019/09/19/sync-async-blocking-non-blocking/</a></sub></p>
+
+<p>⸻</p>
+
+<h3 id="blocking">Blocking</h3>
+<ul>
+  <li>요청한 작업이 끝날 때까지 기다렸다가 끝나면 그 결과를 돌려받는다.</li>
+</ul>
+
+<h3 id="non-blocking">Non-Blocking</h3>
+<ul>
+  <li>작업 요청 이후 결과는 나중에 필요할 때 전달 받는다.</li>
+  <li>중간중간 상태를 확인해 볼 수는 있다.</li>
+</ul>
+
+<p><img src="https://mark-kim.blog/static/9172fd37743404e3409996057cb8b526/17e4a/synchronous_vs_asynchronous.webp" alt="Block-NonBlock" /></p>
+
+<p><sub>이미지 출처: <a href="https://www.geeksforgeeks.org/http-full-form/">https://mark-kim.blog/blocking_nonblocking_&amp;_synchronous_asynchronous/</a></sub></p>
+
+<p>⸻</p>
+
+<p>이 4가지 기준에 따라 I/O 모델을 4가지로 분류할 수 있는데, 각 모델들에 대한 설명을 잘 해놓은 글이 많기 때문에 자세한 설명을 하지는 않겠다.</p>
+
+<h2 id="io-multiplexing---asynchronous-blocking">I/O Multiplexing - Asynchronous Blocking</h2>
+<p>웹서버와 같은 네트워크 프로그램은 수십, 수백 개의 클라이언트와 동시에 통신해야 하는 상황에 자주 놓인다.
+단순한 Blocking 방식으로는 하나의 클라이언트 요청을 처리하는 동안 다른 클라이언트는 응답을 받을 수 없다. 이를 해결하기 위해 I/O Multiplexing이라는 개념이 등장했다.</p>
+
+<p>I/O Multiplexing은 하나의 프로세스가 여러 개의 파일 디스크립터(FD)를 동시에 감시하고, 데이터를 읽거나 쓸 수 있는 상태가 되었을 때만 처리하는 방식이다.
+수많은 파일 디스크립터 중 현재 작업 가능한 것만 골라서 처리하기 때문에, CPU 자원을 효율적으로 사용하며 다수의 연결을 관리할 수 있다.</p>
+
+<p>운영체제마다 제공하는 Multiplexing 방식이 약간씩 다른데, 몇 가지 종류에 대해 설명하겠다.</p>
+
+<h3 id="select">select</h3>
+<ul>
+  <li>가장 오래된 I/O Multiplexing 방식</li>
+  <li>고정된 크기의 FD 배열을 사용(1024개)</li>
+  <li>모든 FD를 매번 순회하여 체크</li>
+  <li>모든 OS에서 지원</li>
+</ul>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fd_set</span> <span class="n">readfds</span><span class="p">;</span>
+<span class="n">select</span><span class="p">(</span><span class="n">max_fd</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">readfds</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="poll">poll</h3>
+<ul>
+  <li>select의 한계를 개선한 방식 (FD 수 제한 없음)</li>
+  <li>배열 기반이지만 순회 필요</li>
+  <li>각 FD마다 구조체 pollfd를 사용</li>
+  <li>이벤트를 감지하지만, 어떤 FD인지 매번 순회해야 함</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">pollfd</span> <span class="n">fds</span><span class="p">[</span><span class="n">NUM</span><span class="p">];</span>
+<span class="n">poll</span><span class="p">(</span><span class="n">fds</span><span class="p">,</span> <span class="n">NUM</span><span class="p">,</span> <span class="n">TIMEOUT</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="epoll">epoll</h3>
+<ul>
+  <li>Linux에서 select/poll의 단점을 극복한 고성능 API</li>
+  <li>커널이 이벤트 대기 목록을 관리</li>
+  <li>이벤트 기반 -&gt; 변경된 FD만 알려줌</li>
+  <li>epoll_create, epoll_ctl, epoll_wait로 구성</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">epfd</span> <span class="o">=</span> <span class="n">epoll_create</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="n">epoll_ctl</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">EPOLL_CTL_ADD</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">event</span><span class="p">);</span>
+<span class="n">epoll_wait</span><span class="p">(</span><span class="n">epfd</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">MAX_EVENTS</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="iocp">IOCP</h3>
+<ul>
+  <li>Windows에서 제공하는 Asynchronous I/O 모델</li>
+  <li>커널이 I/O 완료를 비동기로 알려주는 완전한 비동기 모델</li>
+  <li>스레드풀과 연계되어 고성능 멀티 I/O 처리 가능</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">HANDLE</span> <span class="n">iocp</span> <span class="o">=</span> <span class="n">CreateIoCompletionPort</span><span class="p">(...);</span>
+<span class="n">GetQueuedCompletionStatus</span><span class="p">(</span><span class="n">iocp</span><span class="p">,</span> <span class="p">...);</span>
+</code></pre></div></div>
+
+<h3 id="kqueue">kqueue</h3>
+<ul>
+  <li>macOS, FreeBSD, NetBSD 등에서 사용되는 고성능 이벤트 큐</li>
+  <li>epoll과 유사하게 변경된 이벤트만 감지</li>
+  <li>이벤트 등록과 감지를 모두 kevent()로 처리</li>
+</ul>
+
+<p>Webserv 과제는 macOS에서 진행해야 하기 때문에, kqueue를 사용해서 I/O Multiplexing을 구현했다. 
+kqueue를 사용하기 위해 알아야 하는 것이 몇 가지 있다.</p>
+
+<ul>
+  <li>kqueue(), kevent()</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;sys/event.h&gt;</span><span class="cp">
+</span>
+<span class="kt">int</span> <span class="nf">kqueue</span><span class="p">();</span>
+
+<span class="kt">int</span> <span class="nf">kevent</span><span class="p">(</span><span class="kt">int</span> <span class="n">kq</span><span class="p">,</span>
+    <span class="k">const</span> <span class="k">struct</span> <span class="nc">kevent</span> <span class="o">*</span> <span class="n">changelist</span><span class="p">,</span> <span class="kt">int</span> <span class="n">nchanges</span><span class="p">,</span>
+    <span class="k">struct</span> <span class="nc">kevent</span> <span class="o">*</span> <span class="n">eventlist</span><span class="p">,</span> <span class="kt">int</span> <span class="n">nevents</span><span class="p">,</span>
+    <span class="k">const</span> <span class="k">struct</span> <span class="nc">timespec</span> <span class="o">*</span> <span class="n">timeout</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>kqueue() 함수는 새로운 이벤트 큐를 생성하는 함수이다. 반환값은 이벤트 큐의 File Descriptor이다. 이는 이후에 kevent() 호출에 사용된다.</p>
+
+<p>kevent() 함수는 이벤트를 등록하거나, 발생한 이벤트를 감지할 때 사용하는 시스템 콜이다. 이벤트 등록할 때는 changelist에 담아 넘기면 되고, 감지하려면 eventlist에 발생한 이벤트들을 담아 반환받는다.
+timeout을 통해 대기 시간 조정도 가능하다.</p>
+
+<ul>
+  <li>kevent 구조체</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">kevent</span> <span class="p">{</span>
+    <span class="kt">uintptr_t</span>  <span class="n">ident</span><span class="p">;</span>    <span class="c1">// 감시 대상 (파일 디스크립터 등)</span>
+    <span class="kt">int16_t</span>    <span class="n">filter</span><span class="p">;</span>   <span class="c1">// 이벤트 종류 (ex: EVFILT_READ, EVFILT_WRITE)</span>
+    <span class="kt">uint16_t</span>   <span class="n">flags</span><span class="p">;</span>    <span class="c1">// 동작 설정 플래그 (ex: EV_ADD, EV_ENABLE)</span>
+    <span class="kt">uint32_t</span>   <span class="n">fflags</span><span class="p">;</span>   <span class="c1">// filter-specific 플래그 (많이 사용되진 않음)</span>
+    <span class="kt">intptr_t</span>   <span class="n">data</span><span class="p">;</span>     <span class="c1">// 이벤트에 따라 의미가 달라짐 (ex: read 가능 바이트 수)</span>
+    <span class="kt">void</span><span class="o">*</span>      <span class="n">udata</span><span class="p">;</span>    <span class="c1">// 유저 정의 포인터 (컨텍스트 전달용)</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>kevent는 이벤트를 등록하거나, 이벤트 발생 시 정보를 전달받을 때 사용하는 구조체이다. ident, filter, flag의 값을 통해 이벤트에 대한 정보를 알 수 있다.</p>
+
+<p>EV_SET 매크로를 사용해 이벤트를 등록할 수 있다.</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">struct</span> <span class="nc">kevent</span> <span class="n">change</span><span class="p">;</span>
+<span class="n">EV_SET</span><span class="p">(</span><span class="o">&amp;</span><span class="n">change</span><span class="p">,</span> <span class="n">client_fd</span><span class="p">,</span> <span class="n">EVFILT_READ</span><span class="p">,</span> <span class="n">EV_ADD</span> <span class="o">|</span> <span class="n">EV_ENABLE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+<span class="n">kevent</span><span class="p">(</span><span class="n">kq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">change</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+
+</code></pre></div></div>
+
+<p>⸻</p>
+
+<h2 id="구현">구현</h2>
+<p>kqueue를 사용해 서버를 구현하려면 다음과 같은 순서로 구현해야 한다.</p>
+
+<ol>
+  <li>kqueue 생성</li>
+  <li>Server Socket 생성</li>
+  <li>Server Socket을 kqueue에 등록</li>
+  <li>kqueue에서 발생하는 이벤트 감시</li>
+  <li>서버가 끊어지면 모든 자원 정리</li>
+</ol>
+
+<p>⸻</p>
+
+<h4 id="kqueue-생성">kqueue 생성</h4>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">bool</span>	<span class="n">ServerManager</span><span class="o">::</span><span class="n">InitKqueue</span><span class="p">(</span><span class="kt">int</span> <span class="o">&amp;</span><span class="n">kq</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">sock_serv</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">kq</span> <span class="o">=</span> <span class="n">kqueue</span><span class="p">();</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">kq</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">std</span><span class="o">::</span><span class="n">cerr</span> <span class="o">&lt;&lt;</span> <span class="s">"kqueue fail</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+		<span class="n">close</span><span class="p">(</span><span class="n">sock_serv</span><span class="p">);</span>
+		<span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>kqueue 함수를 사용해 커널로부터 이벤트 큐를 생성한다.</p>
+
+<p>⸻</p>
+
+<h4 id="server-socket-생성">Server Socket 생성</h4>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">bool</span>	<span class="n">ServerManager</span><span class="o">::</span><span class="n">InitServerAddress</span><span class="p">(</span><span class="kt">int</span> <span class="o">&amp;</span><span class="n">kq</span><span class="p">,</span> <span class="n">sockaddr_in</span> <span class="o">&amp;</span><span class="n">addr_serv</span><span class="p">,</span> <span class="kt">int</span> <span class="n">port</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="kt">void</span>	<span class="o">*</span><span class="n">error</span> <span class="o">=</span> <span class="n">memset</span><span class="p">(</span><span class="o">&amp;</span><span class="n">addr_serv</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addr_serv</span><span class="p">));</span>
+	<span class="n">addr_serv</span><span class="p">.</span><span class="n">sin_family</span> <span class="o">=</span> <span class="n">AF_INET</span><span class="p">;</span>
+	<span class="n">addr_serv</span><span class="p">.</span><span class="n">sin_port</span> <span class="o">=</span> <span class="n">htons</span><span class="p">(</span><span class="n">port</span><span class="p">);</span>
+	<span class="n">addr_serv</span><span class="p">.</span><span class="n">sin_addr</span><span class="p">.</span><span class="n">s_addr</span> <span class="o">=</span> <span class="n">htonl</span><span class="p">(</span><span class="n">INADDR_ANY</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">error</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>서버 소켓을 만들기 전에 먼저 sockaddr_in 구조체를 사용해 포트와 IP 주소를 설정해준다.</p>
+
+<p>AF_INET은 IPv4를 의미하고, IPv6를 쓰려면 AF_INET6을 사용한다. 여기서는 IPv4를 사용하니 AF_INET으로 설정한다.</p>
+
+<p>htons(host-to-network short) 호스트 바이트 순서의 IP 포트 번호를 네트워크 바이트 순서의 IP 포트 번호로 변환한다.</p>
+
+<p>htonl(host-to-network long) 함수를 사용하여 호스트 바이트 순서의 IPv4 주소를 네트워크 바이트 순서의 IPv4 주소로 변환한다. INADDR_ANY는 0.0.0.0을 의미하며, 모든 IP 주소로 들어오는 요청을 받겠다는 뜻이다.</p>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">bool</span>	<span class="n">ServerManager</span><span class="o">::</span><span class="n">InitServerSocket</span><span class="p">(</span><span class="kt">int</span> <span class="o">&amp;</span><span class="n">kq</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">sock_serv</span><span class="p">,</span> <span class="n">sockaddr_in</span> <span class="o">&amp;</span><span class="n">addr_serv</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">sock_serv</span> <span class="o">=</span> <span class="n">socket</span><span class="p">(</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">SOCK_STREAM</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">sock_serv</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// 예외 처리</span>
+	<span class="p">}</span>
+
+	<span class="kt">int</span> <span class="n">enable</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">setsockopt</span><span class="p">(</span><span class="n">sock_serv</span><span class="p">,</span> <span class="n">SOL_SOCKET</span><span class="p">,</span> <span class="n">SO_REUSEADDR</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">enable</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">bind</span><span class="p">(</span><span class="n">sock_serv</span><span class="p">,</span> <span class="p">(</span><span class="k">struct</span> <span class="nc">sockaddr</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">addr_serv</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addr_serv</span><span class="p">))</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">listen</span><span class="p">(</span><span class="n">sock_serv</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="n">utils</span><span class="o">::</span><span class="n">SetNonBlock</span><span class="p">(</span><span class="n">sock_serv</span><span class="p">)</span> <span class="o">==</span> <span class="nb">false</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>socket() 함수를 사용해 서버 소켓을 만든다. AF_INET은 IPv4, SOCK_STREAM은 TCP 소켓 형식을 의미한다. 3번째 매개 변수는 프로토콜을 의미하는데, 0을 값으로 넣으면 자동으로 첫 번째, 두 번째 매개변수를 기준으로 인자값을 지정해준다.</p>
+
+<p>setsockopt() 함수를 사용해 socket 옵션을 설정해준다. SOL_SOCKET은 옵션을 socket level로 설정하는 것이다. SO_REUSEADDR은 소켓이 다른 소켓에서 사용 중인 포트에 강제로 바인딩할 수 있게 하는 옵션인데, 서버를 자주 껐다 켰다 하는 경우에 유용하다.</p>
+
+<p>bind() 함수를 사용해 앞에서 만든 소켓과 IP주소-포트 를 묶어준다.</p>
+
+<p>이제 listen() 함수를 통해 바인딩이 끝난 서버 소켓을 클라이언트의 요청을 받을 수 있는 상태로 만든다. 두 번째 인자인 2048은 백로그 큐의 크기로, 동시에 대기할 수 있는 연결 요청의 수를 의미한다.</p>
+
+<p>마지막으로 fcntl() 함수를 사용해 서버 소켓, 즉 파일 디스크립터를 O_NONBLOCK 설정 해준다. read 시 blocking으로 처리하면 데이터를 읽어올 때까지 기다리기 때문에 non blocking으로 설정해줘야 한다.</p>
+
+<p>⸻</p>
+
+<h4 id="server-socket을-kqueue에-등록">Server Socket을 kqueue에 등록</h4>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">bool</span>	<span class="n">ServerManager</span><span class="o">::</span><span class="n">RegistSockserv</span><span class="p">(</span><span class="kt">int</span> <span class="o">&amp;</span><span class="n">kq</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">sock_serv</span><span class="p">,</span> <span class="k">struct</span> <span class="o">::</span><span class="n">kevent</span> <span class="o">&amp;</span><span class="n">change_event</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">EV_SET</span><span class="p">(</span><span class="o">&amp;</span><span class="n">change_event</span><span class="p">,</span> <span class="n">sock_serv</span><span class="p">,</span> <span class="n">EVFILT_READ</span><span class="p">,</span> <span class="n">EV_ADD</span> <span class="o">|</span> <span class="n">EV_ENABLE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="o">::</span><span class="n">kevent</span><span class="p">(</span><span class="n">kq</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">change_event</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="c1">// ...</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>서버 소켓을 생성하고 바인딩한 후에, 클라이언트의 요청을 감지하기 위해 kqueue에 해당 소켓을 읽기 이벤트 대상으로 등록해야 한다.</p>
+
+<p>⸻</p>
+
+<h4 id="kqueue에서-발생하는-이벤트-감시">kqueue에서 발생하는 이벤트 감시</h4>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="kt">bool</span>	<span class="n">ServerManager</span><span class="o">::</span><span class="n">CheckEvent</span><span class="p">(</span><span class="kt">int</span> <span class="o">&amp;</span><span class="n">kq</span><span class="p">,</span> <span class="k">struct</span> <span class="o">::</span><span class="n">kevent</span> <span class="o">*</span><span class="n">events</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">event_count</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">event_count</span> <span class="o">=</span> <span class="n">kevent</span><span class="p">(</span><span class="n">kq</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">event_count</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="n">std</span><span class="o">::</span><span class="n">cerr</span> <span class="o">&lt;&lt;</span> <span class="s">"kevent wait fail</span><span class="se">\n</span><span class="s">"</span><span class="p">;</span>
+		<span class="k">return</span> <span class="p">(</span><span class="nb">false</span><span class="p">);</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="p">(</span><span class="nb">true</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>kevent 함수를 사용해 event_count, events 배열을 받아온다.</p>
+
+<p>앞에서 만든 kqueue와 서버 소켓을 사용해 events 배열을 순회해, 클라이언트에서 들어온 요청을 처리하고, 발생한 이벤트들을 처리해야 한다. 이벤트 종류를 크게 3가지로 분류할 수 있다.</p>
+
+<ul>
+  <li>서버 소켓으로 읽기 이벤트 발생</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">filter</span> <span class="o">==</span> <span class="n">EVFILT_READ</span> <span class="o">&amp;&amp;</span> <span class="n">CheckValidServer</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ident</span><span class="p">))</span>
+<span class="p">{</span>
+    <span class="kt">int</span> 				<span class="n">sock_client</span><span class="p">;</span>
+    <span class="k">struct</span> <span class="nc">sockaddr_in</span>	<span class="n">addr_client</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">InitClientSocket</span><span class="p">(</span><span class="n">kq</span><span class="p">,</span> <span class="n">sock_serv</span><span class="p">,</span> <span class="n">change_event</span><span class="p">,</span> <span class="n">sock_client</span><span class="p">,</span> <span class="n">addr_client</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">addr_client</span><span class="p">))</span> <span class="o">==</span> <span class="nb">false</span><span class="p">)</span>
+        <span class="k">continue</span> <span class="p">;</span>
+    <span class="n">Connection</span> <span class="o">*</span><span class="n">con</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Connection</span><span class="p">(</span><span class="n">kq</span><span class="p">,</span> <span class="n">sock_client</span><span class="p">,</span> <span class="n">addr_client</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">session</span><span class="p">);</span>
+    <span class="n">v_connection</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">con</span><span class="p">);</span>
+    <span class="n">AddConnectionMap</span><span class="p">(</span><span class="n">sock_client</span><span class="p">,</span> <span class="n">v_connection</span><span class="p">.</span><span class="n">back</span><span class="p">());</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>서버 소켓으로 읽기 이벤트가 발생했다면 클라이언트에서 새로운 연결을 요청한 것이기 때문에, accept() 함수를 통해 클라이언트 소켓을 생성하고 앞에서 서버 소켓의 옵션을 설정해줬던 것처럼 동일하게 진행 후, kqueue에 등록해준다. 클라이언트 소켓 생성 시 Connection이라는 객체를 만들어, 클라이언트의 연결과 관련된 정보를 관리한다. 이를 std::map에 &lt;fd, Connection*&gt;로 저장해 request, response를 처리할 때 사용했다.</p>
+
+<ul>
+  <li>클라이언트 소켓 이벤트 발생</li>
+</ul>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// if Client Socket Event</span>
+<span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">connectionmap</span><span class="p">.</span><span class="n">find</span><span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ident</span><span class="p">))</span> <span class="o">==</span> <span class="n">connectionmap</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+        <span class="k">continue</span><span class="p">;</span>
+    <span class="n">Connection</span><span class="o">*</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">connectionmap</span><span class="p">[</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">ident</span><span class="p">)];</span>
+    <span class="n">connection</span><span class="o">-&gt;</span><span class="n">MainProcess</span><span class="p">(</span><span class="n">events</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="n">connection</span><span class="o">-&gt;</span><span class="n">UpdateTimeval</span><span class="p">();</span>
+    <span class="n">AfterProcess</span><span class="p">(</span><span class="n">connection</span><span class="p">);</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>클라이언트 소켓 이벤트 발생 시, request에 대한 적절한 response를 만들어 클라이언트에게 보낸다. 이에 관한 부분은 따로 자세히 포스트로 다룰 예정이다.</p>
+
+<ul>
+  <li>나머지 경우</li>
+</ul>
+
+<p>이미 클라이언트의 요청을 처리했지만, 알 수 없는 이유로 계속 요청이 들어오는 경우가 있었다. 이 경우에 EV_EOF 플래그가 켜졌었는데, 이 경우에 연결을 정상적으로 끊을 수 있게 처리해주었다. 나중에 알고보니 Connection을 keep-alive로 구현하지 않아 생긴 문제였는데, keep-alive로 수정 후에는 EV_EOF 플래그가 켜지지 않았다. 코드는 따로 첨부하지 않겠다.</p>
+
+<p>⸻</p>
+
+<h4 id="서버가-끊어지면-모든-자원-정리">서버가 끊어지면 모든 자원 정리</h4>
+
+<div class="language-c++ highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span>	<span class="n">ServerManager</span><span class="o">::</span><span class="n">CloseAllConnection</span><span class="p">()</span>
+<span class="p">{</span>
+	<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">v_connection</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetFileFd</span><span class="p">())</span>
+		<span class="p">{</span>
+			<span class="n">CloseConnectionMap</span><span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetFileFd</span><span class="p">());</span>
+			<span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">SetFileFd</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetPipein</span><span class="p">())</span>
+		<span class="p">{</span>
+			<span class="n">CloseConnectionMap</span><span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetPipein</span><span class="p">());</span>
+			<span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">SetPipein</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetPipeout</span><span class="p">())</span>
+		<span class="p">{</span>
+			<span class="n">CloseConnectionMap</span><span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetPipeout</span><span class="p">());</span>
+			<span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">SetPipeout</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+		<span class="p">}</span>
+		<span class="n">CloseVConnection</span><span class="p">(</span><span class="n">v_connection</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">GetClientSocketFd</span><span class="p">());</span>
+	<span class="p">}</span>
+	<span class="n">close</span><span class="p">(</span><span class="n">kq</span><span class="p">);</span>
+	<span class="n">v_connection</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+	<span class="n">connectionmap</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>서버가 종료됐을 때 보관하고 있는 Connection, 연관된 자원들을 모두 정리하고 프로그램을 종료한다.</p>
+
+<h2 id="마무리">마무리</h2>
+<p>지금까지 kqueue를 활용한 I/O Multiplexing 방식의 서버 구현 흐름을 하나씩 살펴보았다.
+단순히 동작하는 서버를 만드는 것을 넘어, 운영체제의 이벤트 기반 시스템 콜이 어떻게 작동하는지 이해하고, 소켓을 어떻게 효율적으로 관리할 수 있는지 체계적으로 정리해보았다.</p>
+
+<p>다음 포스트에서는 이 구조를 기반으로 실제 클라이언트의 요청(Request)을 분석하고, 적절한 응답(Response)을 생성해주는 HTTP 처리 로직에 대해 이야기해보려고 한다. 또한 설정 파일을 기반으로 어떻게 서버가 생성되는지에 대해 설명할 것이다.</p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<!--
+  portfolYOU Jekyll theme by yousinix
+  Free for personal and commercial use under the MIT license
+  https://github.com/yousinix/portfolYOU
+-->
+
+<html lang="en" class="h-100">
+
+<!-- Google Analytics -->
+<!-- Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNZM4ZG5RT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNZM4ZG5RT', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+
+
+
+<body class="h-100 d-flex flex-column">
+
+  <main class="flex-shrink-0 container mt-5">
+    <nav class="navbar navbar-expand-lg navbar-themed">
+
+  <a class="navbar-brand" href="/"><h5><b>jasongoo827</b></h5></a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fas fa-1x fa-bars text-themed"></i>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <div class="navbar-nav ml-auto"><a class="nav-item nav-link " href="/CLAUDE">기술 블로그 프로젝트</a>
+
+      <a class="nav-item nav-link " href="/projects/">Projects</a>
+
+      <a class="nav-item nav-link active" href="/blog/">Blog</a>
+
+      <a class="nav-item nav-link " href="/about/">About</a>
+
+      
+
+      <span id="theme-toggler" class="nav-item nav-link" role="button" onclick="toggleTheme()"></span>
+    </div>
+  </div>
+
+</nav>
+    <div class="col-lg-10 mx-auto mt-5 markdown-body">
+  <div class="row">
+  <!-- 본문 영역 -->
+  <div class="col-md-9">
+    <h1><b>Physics Engine</b></h1>
+
+    <p class="post-metadata text-muted">
+      25 March 2025 -  
+      <b>11 mins read time</b>
+
+      <br>Tags: 
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#game-engine">
+          <span class="tag badge badge-pill text-primary border border-primary">Game Engine</span>
+        </a>
+        
+        <a class="text-decoration-none no-underline" href="/blog/tags#physics">
+          <span class="tag badge badge-pill text-primary border border-primary">Physics</span>
+        </a>
+        </p>
+
+    <h2 id="physics-engine">Physics Engine</h2>
+<p>게임을 개발하다 보면, 화면 속의 캐릭터가 땅 위에 서 있고, 총알이 적에게 명중하며, 자동차가 벽에 부딪히는 등의 장면을 자주 보게 된다. 이런 장면들은 마치 현실처럼 자연스럽게 보이지만, 사실 그 뒤에는 수많은 수학적 연산과 논리가 숨어 있다. 바로 <strong>물리 엔진(Physics Engine)</strong>이 그 역할을 맡고 있으며, 게임 속 물리 법칙을 시뮬레이션하는 핵심적인 요소다.</p>
+
+<p>물리 엔진은 크게 두 가지 중요한 역할을 수행한다.</p>
+
+<p>충돌 감지 (Collision Detection): 객체들이 서로 부딪히는지를 판별한다.</p>
+
+<p>물리 시뮬레이션 (Physics Simulation): 충돌이 발생했을 때 반응을 계산한다.</p>
+
+<p>이 중에서도 충돌 감지는 특히 계산량이 많아 성능 최적화가 필수적인 영역이다. 예를 들어, 100개의 오브젝트가 있는 게임에서는 이론적으로 모든 오브젝트가 서로 충돌할 가능성이 있기 때문에, 순진한 방식으로 충돌을 검사하면 <strong>O(n²)</strong>의 연산량이 필요하다. 하지만 이런 방식으로는 현대적인 대규모 게임에서 실시간 처리가 불가능하다.</p>
+
+<hr />
+
+<h2 id="flow">Flow</h2>
+<p>물리 엔진의 흐름은 다음과 같다.</p>
+
+<h4 id="1-integrate">1. Integrate</h4>
+<p>외부에서 가해진 힘-토크 를 계산해 물체의 가속도-각가속도, 속도-각속도, 위치-회전 을 계산한다.</p>
+
+<h4 id="2-broadphase">2. Broadphase</h4>
+<p>물체의 Bounding Volume을 계산해 Volume끼리 서로 충돌하는지 검사한다.</p>
+
+<h4 id="3-narrowphase">3. Narrowphase</h4>
+<p>Broadphase에서 충돌한 물체의 쌍들이 실제로 충돌하는지 검사한다.</p>
+
+<h4 id="4-solve">4. Solve</h4>
+<p>Narrowphase에서 생성된 충돌 정보를 바탕으로 충돌을 해소한다.</p>
+
+<p>내가 물리 엔진에서 구현한 부분은 Interate ~ Broadphase 단계이다. Integrate 단계는 뉴턴의 제2법칙을 바탕으로 식을 계산하는 단계이기 때문에 따로 설명은 하지 않겠다. Broadphase 단계부터 차근차근 설명해보겠다.</p>
+
+<hr />
+
+<h2 id="broadphase의-개념">Broadphase의 개념</h2>
+
+<p>Broadphase 단계는 실제로 물체가 충돌하는지 확인하는 단계가 아니라, 빠르게 충돌 가능성이 있는 물체들을 선별하는 단계이다. 처음부터 물체가 충돌하는지 확인하는 게 단계를 더 줄일 수 있으니 빠르지 않냐라고 생각할 수 있지만, 충돌 확인 연산은 비용이 매우매우 비싸기 때문에 미리 충돌 쌍을 선별하는 게 더 좋다. 충돌 가능성이 있는 물체를 선별하기 위해, 먼저 물체를 대략적으로 판단할 수 있는 Bounding Volume을 씌운다.</p>
+
+<h3 id="bounding-volume">Bounding Volume</h3>
+<p>Bounding Volume은 오브젝트를 감싸는 단순한 형태의 가짜 외곽선이라고 생각하면 이해하기 쉽다. 복잡한 메시(Mesh)나 다각형을 정밀하게 검사하는 대신, 그걸 감싸는 단순한 기하 도형을 사용해서 “겹칠 가능성이 있는지”를 빠르게 판단하는 것이다. Bounding Volume을 만드는 방식은 여러가지가 있다.</p>
+
+<p><img src="https://docs.unity3d.com/Packages/com.unity.physics@1.2/manual/images/bounding-volumes.png" alt="Bounding Volume" /></p>
+
+<h4 id="aabbaxis-aligned-bounding-box">AABB(Axis-Aligned Bounding Box)</h4>
+<ul>
+  <li>각 축(x,y,z)에 대해 정렬된(회전하지 않은) 사각형/박스</li>
+  <li>구현이 간단하고 비교 연산이 빠름</li>
+  <li>회전하는 물체를 감싸면 볼륨이 불필요하게 커질 수 있음</li>
+</ul>
+
+<h4 id="obboriented-bounding-box">OBB(Oriented Bounding Box)</h4>
+<ul>
+  <li>객체의 방향에 맞춰 회전된 경계 박스</li>
+  <li>AABB보다 정확하지만 계산이 복잡하고 비용이 높음</li>
+</ul>
+
+<h4 id="bounding-sphere">Bounding Sphere</h4>
+<ul>
+  <li>중심점과 반지름만 있으면 되기 때문에 계산이 매우 단순</li>
+  <li>대칭적인 물체에는 효과적, 하지만 길쭉한 물체에는 비효율적</li>
+</ul>
+
+<hr />
+
+<h2 id="bvhbounding-volume-hierarchy">BVH(Bounding Volume Hierarchy)</h2>
+<p>Bounding Volume을 정했다면, 이를 가지고 계층 구조 트리를 만들게 된다. 그 전에 왜 트리를 만들어야 하는지 이해하고 가야 한다. Bounding Volume을 만들었다고 해도, 그 정보를 선형적으로 저장하면 Volume끼리 충돌하는지 알아내는 데 걸리는 시간복잡도가 <strong>O(n²)</strong> 이다.</p>
+
+<p>시간복잡도를 줄이기 위해 고안된 것이 이진 트리의 활용이다. 이진 트리를 사용하면 트리의 절반씩 후보를 제거할 수 있다. 이렇게 설명하면 너무 추상적이니 좀 더 와닿게 예시로 설명을 해보겠다.</p>
+
+<hr />
+
+<h3 id="-bvh를-봉식이와-원훈이의-대결로-이해해보자">🧠 BVH를 봉식이와 원훈이의 대결로 이해해보자</h3>
+
+<p>BVH(Bounding Volume Hierarchy)를 처음 보면 “왜 굳이 계층적으로 묶지?”라는 의문이 들 수 있다.<br />
+그걸 좀 더 쉽게 이해하기 위해, 우리 친구 <strong>봉식이</strong>와 <strong>원훈이</strong>의 <strong>대결 스토리</strong>를 들어보자.</p>
+
+<hr />
+
+<h4 id="-설정-전국에-퍼진-파이터들">🎮 설정: 전국에 퍼진 파이터들</h4>
+
+<ul>
+  <li>봉식이와 원훈이는 전국 최고의 싸움꾼이다.</li>
+  <li>그런데 두 사람은 전국을 돌아다니며, <strong>자신과 대결할 상대를 찾고</strong> 있다.</li>
+  <li>하지만 모든 사람과 일일이 싸워볼 수는 없다. 효율적으로 <strong>“나랑 싸울 가능성이 있는 사람만 고르고 싶다!”</strong></li>
+</ul>
+
+<p>봉식이와 원훈이는 이렇게 생각한다:</p>
+
+<blockquote>
+  <p>“서울, 부산, 대전, 대구, 광주, 제주… 먼저 <strong>동네 단위로 사람들을 묶자!</strong><br />
+나랑 같은 동네 사람만 싸울 가능성이 있으니까!”</p>
+</blockquote>
+
+<p>그래서 전국의 파이터들을 <strong>지역 단위</strong>로 나눈다(이진 트리 구조인 것을 잠시 놔두고 생각하자).</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[대한민국]
+├── [서울] ─ 파이터 A, 파이터 B
+├── [부산] ─ 파이터 C
+├── [대전] ─ 봉식이
+├── [광주] ─ 원훈이
+</code></pre></div></div>
+
+<p>이 구조는 바로 <strong>BVH의 상위 노드</strong> 역할을 한다.<br />
+여기서 봉식이는 “나는 대전에 있으니까, 광주 사람(원훈이)이랑은 아예 비교 안 해도 돼”라고 판단할 수 있다. 다른 동네를 아예 배제해버릴 수 있는 것이다!</p>
+
+<p>하지만 만약 봉식이와 원훈이가 <strong>같은 동네</strong>에 살고 있다면?</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[대전]
+├── 봉식이
+├── 원훈이
+</code></pre></div></div>
+
+<p>그렇다면 서로 싸울 가능성이 있는 것이다!!</p>
+
+<hr />
+
+<p>다른 Volume들을 배제하며, 충돌쌍을 빠른 시간 안에 찾을 수 있기 때문에 BVH를 쓰는 것이 좋은 것이다. BVH를 표현한다면 아래의 이미지와 같다.</p>
+
+<p><img src="https://www.researchgate.net/publication/362859119/figure/fig1/AS:11431281080279198@1661224948923/Bounding-volume-hierarchies-structure.ppm" alt="BVH" /></p>
+
+<hr />
+
+<h2 id="구현">구현</h2>
+<p>BVH에 필요한 기능은 노드 삽입, 삭제, 트리 회전이다. 회전은 왜 필요한지 의문이 들 수 있다. BVH의 이점을 극대화하려면 트리가 늘 균형을 유지할 수 있게 관리해야 한다. 트리가 불균형하다면 절반씩 탐색 범위를 줄일 수 없어지기 때문이다. 따라서 균형을 맞추기 위해 회전을 구현한다. 다음은 트리의 구현에 관한 코드이다.</p>
+
+<h4 id="treenode">TreeNode</h4>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="nc">TreeNode</span>
+<span class="p">{</span>
+	<span class="cm">/**
+	 * @brief 노드가 리프(Leaf)인지 확인합니다.
+	 * @return 리프 노드이면 true, 그렇지 않으면 false.
+	 */</span>
+	<span class="kt">bool</span> <span class="n">isLeaf</span><span class="p">()</span> <span class="k">const</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="n">child1</span> <span class="o">==</span> <span class="n">nullNode</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="n">AABB</span> <span class="n">aabb</span><span class="p">;</span>
+	<span class="kt">void</span> <span class="o">*</span><span class="n">userData</span><span class="p">;</span>
+
+	<span class="k">union</span> <span class="p">{</span>
+		<span class="kt">int32_t</span> <span class="n">parent</span><span class="p">;</span>
+		<span class="kt">int32_t</span> <span class="n">next</span><span class="p">;</span>
+	<span class="p">};</span>
+	<span class="kt">int32_t</span> <span class="n">child1</span><span class="p">;</span>
+	<span class="kt">int32_t</span> <span class="n">child2</span><span class="p">;</span>
+	<span class="kt">int32_t</span> <span class="n">height</span><span class="p">;</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<h4 id="dynamictree">DynamicTree</h4>
+
+<p>다음은 트리이다. proxy라는 말이 생소한데, 그냥 노드라고 생각하면 된다.
+노드를 vector로 관리하는데, 메모리 풀로 관리한다면 메모리 할당에 쓰는 cpu를 최적화할 수 있다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="cm">/**
+ * @class DynamicTree
+ * @brief 동적 트리 기반 충돌 감지를 수행하는 클래스.
+ * @details DynamicTree는 AABB 트리를 관리하여 빠른 충돌 탐색을 지원합니다.
+ */</span>
+<span class="k">class</span> <span class="nc">DynamicTree</span>
+<span class="p">{</span>
+  <span class="nl">public:</span>
+	<span class="cm">/**
+	 * @brief DynamicTree 기본 생성자.
+	 */</span>
+	<span class="n">DynamicTree</span><span class="p">();</span>
+
+	<span class="cm">/**
+	 * @brief DynamicTree 소멸자.
+	 */</span>
+	<span class="o">~</span><span class="n">DynamicTree</span><span class="p">();</span>
+
+	<span class="cm">/**
+	 * @brief AABB와 사용자 데이터를 기반으로 새로운 Proxy(노드)를 생성합니다.
+	 * @param aabb 삽입할 AABB.
+	 * @param userData 사용자 데이터 포인터.
+	 * @return 생성된 Proxy ID.
+	 */</span>
+	<span class="kt">int32_t</span> <span class="n">createProxy</span><span class="p">(</span><span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">aabb</span><span class="p">,</span> <span class="kt">void</span> <span class="o">*</span><span class="n">userData</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief Proxy ID에 해당하는 노드를 제거합니다.
+	 * @param proxyId 제거할 Proxy ID.
+	 */</span>
+	<span class="kt">void</span> <span class="n">destroyProxy</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">proxyId</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief Proxy를 새로운 위치로 이동하고 트리를 재구성합니다.
+	 * @param proxyId 이동할 Proxy ID.
+	 * @param aabb 새로운 AABB.
+	 * @param displacement 이동 벡터.
+	 * @return 이동 성공 여부 (true: 성공, false: 실패).
+	 */</span>
+	<span class="kt">bool</span> <span class="n">moveProxy</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">proxyId</span><span class="p">,</span> <span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">aabb</span><span class="p">,</span> <span class="k">const</span> <span class="n">alglm</span><span class="o">::</span><span class="n">vec3</span> <span class="o">&amp;</span><span class="n">displacement</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief Proxy ID에 해당하는 사용자 데이터를 반환합니다.
+	 * @param proxyId 조회할 Proxy ID.
+	 * @return 사용자 데이터 포인터.
+	 */</span>
+	<span class="kt">void</span> <span class="o">*</span><span class="n">getUserData</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">proxyId</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+	<span class="cm">/**
+	 * @brief Proxy ID에 해당하는 AABB를 반환합니다.
+	 * @param proxyId 조회할 Proxy ID.
+	 * @return 해당 Proxy의 AABB.
+	 */</span>
+	<span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">getFatAABB</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">proxyId</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+	<span class="cm">/**
+	 * @brief AABB와 겹치는 노드를 탐색합니다.
+	 * @tparam T 콜백 함수 타입.
+	 * @param callback 검색된 노드를 처리할 콜백 함수.
+	 * @param aabb 검색할 AABB 영역.
+	 */</span>
+	<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="kt">void</span> <span class="n">query</span><span class="p">(</span><span class="n">T</span> <span class="o">*</span><span class="n">callback</span><span class="p">,</span> <span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">aabb</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+
+  <span class="nl">private:</span>
+	<span class="cm">/**
+	 * @brief 새로운 노드를 할당합니다.
+	 * @return 할당된 노드 ID.
+	 */</span>
+	<span class="kt">int32_t</span> <span class="n">allocateNode</span><span class="p">();</span>
+
+	<span class="cm">/**
+	 * @brief 특정 노드를 해제합니다.
+	 * @param nodeId 해제할 노드 ID.
+	 */</span>
+	<span class="kt">void</span> <span class="n">freeNode</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">nodeId</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief 노드를 트리에 삽입하고 균형을 조정합니다.
+	 * @param leaf 삽입할 리프 노드 ID.
+	 */</span>
+	<span class="kt">void</span> <span class="n">insertLeaf</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">leaf</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief 노드를 트리에서 제거합니다.
+	 * @param leaf 제거할 리프 노드 ID.
+	 */</span>
+	<span class="kt">void</span> <span class="n">removeLeaf</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">leaf</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief 트리 균형을 조정합니다.
+	 * @param index 균형을 조정할 노드 인덱스.
+	 * @return 균형이 맞춰진 노드 인덱스.
+	 */</span>
+	<span class="kt">int32_t</span> <span class="n">balance</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">index</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief 특정 리프 노드의 삽입 비용을 계산합니다.
+	 * @param leafAABB 삽입할 AABB.
+	 * @param child 대상 노드.
+	 * @param inheritedCost 상속된 비용.
+	 * @return 삽입 비용.
+	 */</span>
+	<span class="kt">float</span> <span class="n">getInsertionCostForLeaf</span><span class="p">(</span><span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">leafAABB</span><span class="p">,</span> <span class="kt">int32_t</span> <span class="n">child</span><span class="p">,</span> <span class="kt">float</span> <span class="n">inheritedCost</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief 특정 노드의 삽입 비용을 계산합니다.
+	 * @param leafAABB 삽입할 AABB.
+	 * @param child 대상 노드.
+	 * @param inheritedCost 상속된 비용.
+	 * @return 삽입 비용.
+	 */</span>
+	<span class="kt">float</span> <span class="n">getInsertionCost</span><span class="p">(</span><span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">leafAABB</span><span class="p">,</span> <span class="kt">int32_t</span> <span class="n">child</span><span class="p">,</span> <span class="kt">float</span> <span class="n">inheritedCost</span><span class="p">);</span>
+
+	<span class="cm">/**
+	 * @brief 동적 트리의 구조를 출력합니다.
+	 * @param node 출력할 노드의 인덱스.
+	 */</span>
+	<span class="kt">void</span> <span class="n">printDynamicTree</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">node</span><span class="p">);</span>
+
+	<span class="c1">// // tree의 height 계산</span>
+	<span class="c1">// int32_t ComputeHeight() const;</span>
+	<span class="c1">// // sub-tree의 height 계산</span>
+	<span class="c1">// int32_t ComputeHeight(int32_t nodeId) const;</span>
+
+	<span class="kt">int32_t</span> <span class="n">m_root</span><span class="p">;</span>
+	<span class="kt">int32_t</span> <span class="n">m_freeNode</span><span class="p">;</span>
+	<span class="kt">int32_t</span> <span class="n">m_nodeCount</span><span class="p">;</span>
+	<span class="kt">int32_t</span> <span class="n">m_nodeCapacity</span><span class="p">;</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">TreeNode</span><span class="o">&gt;</span> <span class="n">m_nodes</span><span class="p">;</span>
+<span class="p">};</span>
+
+</code></pre></div></div>
+
+<h4 id="bounding-volume-collision-detection">Bounding Volume Collision Detection</h4>
+<p>인자로 검사하고자 하는 Volume을 넣어주고, 트리의 루트 노드부터 순회하며 단말 노드까지 검사한다. stack을 사용하는 것이 특징이다. testOverlap 함수는 두 AABB가 겹치는지 확인하는 함수이다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="nc">T</span><span class="p">&gt;</span> <span class="kr">inline</span> <span class="kt">void</span> <span class="n">DynamicTree</span><span class="o">::</span><span class="n">query</span><span class="p">(</span><span class="n">T</span> <span class="o">*</span><span class="n">callback</span><span class="p">,</span> <span class="k">const</span> <span class="n">AABB</span> <span class="o">&amp;</span><span class="n">aabb</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+	<span class="n">std</span><span class="o">::</span><span class="n">stack</span><span class="o">&lt;</span><span class="kt">int32_t</span><span class="o">&gt;</span> <span class="n">stack</span><span class="p">;</span>
+	<span class="n">stack</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">m_root</span><span class="p">);</span>
+
+	<span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">stack</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span>
+	<span class="p">{</span>
+		<span class="kt">int32_t</span> <span class="n">nodeId</span> <span class="o">=</span> <span class="n">stack</span><span class="p">.</span><span class="n">top</span><span class="p">();</span>
+		<span class="n">stack</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">nodeId</span> <span class="o">==</span> <span class="n">nullNode</span><span class="p">)</span>
+		<span class="p">{</span>
+			<span class="k">continue</span><span class="p">;</span>
+		<span class="p">}</span>
+
+		<span class="k">const</span> <span class="n">TreeNode</span> <span class="n">node</span> <span class="o">=</span> <span class="n">m_nodes</span><span class="p">[</span><span class="n">nodeId</span><span class="p">];</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">testOverlap</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">aabb</span><span class="p">,</span> <span class="n">aabb</span><span class="p">))</span>
+		<span class="p">{</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">isLeaf</span><span class="p">())</span>
+			<span class="p">{</span>
+				<span class="kt">bool</span> <span class="n">proceed</span> <span class="o">=</span> <span class="n">callback</span><span class="o">-&gt;</span><span class="n">queryCallback</span><span class="p">(</span><span class="n">nodeId</span><span class="p">);</span>
+				<span class="k">if</span> <span class="p">(</span><span class="n">proceed</span> <span class="o">==</span> <span class="nb">false</span><span class="p">)</span>
+				<span class="p">{</span>
+					<span class="k">return</span><span class="p">;</span>
+				<span class="p">}</span>
+			<span class="p">}</span>
+			<span class="k">else</span>
+			<span class="p">{</span>
+				<span class="n">stack</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">child1</span><span class="p">);</span>
+				<span class="n">stack</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">node</span><span class="p">.</span><span class="n">child2</span><span class="p">);</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">bool</span> <span class="n">BroadPhase</span><span class="o">::</span><span class="n">queryCallback</span><span class="p">(</span><span class="kt">int32_t</span> <span class="n">proxyId</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">proxyId</span> <span class="o">==</span> <span class="n">m_queryProxyId</span><span class="p">)</span>
+	<span class="p">{</span>
+		<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+	<span class="p">}</span>
+
+	<span class="n">m_proxySet</span><span class="p">.</span><span class="n">insert</span><span class="p">({</span><span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">proxyId</span><span class="p">,</span> <span class="n">m_queryProxyId</span><span class="p">),</span> <span class="n">std</span><span class="o">::</span><span class="n">max</span><span class="p">(</span><span class="n">proxyId</span><span class="p">,</span> <span class="n">m_queryProxyId</span><span class="p">)});</span>
+	<span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>글을 작성하면서 queryCallback 함수를 다시 살펴보니 그냥 void로 선언하는 게 적합했을 것이다. bool로 선언한 이유는 box2d의 영향이 클 것이다.</p>
+
+<p>나머지 부분들에 대한 설명은 너무 방대하기 때문에 여기서 끝내겠다. 나중에 코드만 따로 설명할 다른 포스트를 작성할 수도 있을 것 같다. 밑의 참고 자료, 특히 ErinCatto의 pdf를 읽어보는 게 트리에서 노드의 삽입, 삭제, 회전 과정 이해에 큰 도움이 될 것이다.</p>
+
+<hr />
+
+<h2 id="시행착오">시행착오</h2>
+<p>물리 엔진을 구현하기 위해 처음 공부한 것은 ‘Game Physics Engine Development’ 라는 책이다. 지금은 팔지 않는 책인데, 강남구에 있는 도서관 중에 딱 한 권 있길래 운 좋게 빌려올 수 있었다. 책을 읽으며 물리 엔진의 큰 흐름에 대해 감을 잡을 수 있었다. 하지만 번역 issue, 너무 추상적인 설명 등으로 인해 책만으로 코드를 작성하기에는 무리였다. 그래서 구글을 열심히 찾아보다가 게임 엔진을 구현한 어떤 분의 블로그를 우연히 발견했다. 물리 엔진 뿐만 아니라 흥미로운 내용이 많았는데, 여기서 box2d라는 물리 엔진의 존재에 대해 처음 알게 됐다. 또 정말 다행히도 소스코드가 github에 있어서 학습을 하는데 큰 도움이 됐다.</p>
+
+<p>Broadphase까지 구현하는 데는 box2d의 도움이 컸지만, Narrowphase를 구현할 때 같이 구현한 동료가 box2d의 코드를 이해하는 데 어려움을 겪어 많이 해맸다. 그래서 다른 상용 물리엔진의 소스코드를 분석하며 학습을 했다. 어려움이 많았지만, 그럼에도 불구하고 끝까지 내용을 공부해 구현한 <strong>seonjo</strong> 에게 박수를 보낸다.</p>
+
+<hr />
+
+<h2 id="결과">결과</h2>
+<p>물리 엔진의 성능을 확인할 수 있는 데모 영상이다.</p>
+
+<h4 id="alephysics">ALEPhysics</h4>
+<p><a href="https://youtu.be/oJnp3A-QEsE"><img src="https://i9.ytimg.com/vi/oJnp3A-QEsE/mqdefault.jpg?sqp=CLSxlb8G-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGF4gXiheMA8=&amp;rs=AOn4CLCTFZ79uT29xdBXCAismSskUAKzCw" alt="ALEPhysics" /></a></p>
+
+<h4 id="alephysics-demo">ALEPhysics Demo</h4>
+<p><a href="https://youtu.be/_ZHyU_WvnIw"><img src="https://i9.ytimg.com/vi/_ZHyU_WvnIw/mqdefault.jpg?sqp=CLSxlb8G-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgXChbMA8=&amp;rs=AOn4CLDgmvOB6xlRh_DfpiWxcD_Z3H7oHQ" alt="ALEPhysics Demo" /></a></p>
+
+<hr />
+
+<h2 id="개인적인-소감">개인적인 소감</h2>
+<p>개인적으로 아쉬웠던 점은 Narrowphase 파트도 내가 구현해 봤으면 좋았을 것 같다는 점, 단순한 모양이 아닌 복잡한 mesh를 가진 도형을 다뤄보지 못한 것, 물리 엔진 루프를 fixed duration으로 구현 못한 것과 렌더링 엔진과 다른 쓰레드로 나누지 못한 점 등등 너무나도 많다. 나중에 시간이 허락된다면, 아쉬웠던 점들을 처음부터 설계에 포함해 구현하면 좋을 것 같다.</p>
+
+<h2 id="참고-자료">참고 자료</h2>
+
+<p><a href="https://product.kyobobook.co.kr/detail/S000001535514">Game Physics Engine Development</a></p>
+
+<p><a href="https://github.com/erincatto/box2d">box2d</a></p>
+
+<p><a href="https://github.com/kripken/box2d.js/">box2d.js</a></p>
+
+<p><a href="https://box2d.org/files/ErinCatto_DynamicBVH_GDC2019.pdf">Dynamic Bounding Volume Hierarchies</a></p>
+
+<p><a href="https://chanhaeng.blogspot.com/">chanhaeng blog</a></p>
+
+
+    
+    <div class="pt-5">
+      
+    </div>
+    
+  </div>
+
+  <!-- 사이드바 영역 -->
+  <div class="col-md-3">
+    <div class="tags-list">
+    <h3>📂 태그 목록</h3>
+    <ul>
+      
+      
+        
+        
+        <li>
+          <a href="/blog/tags#ai">
+            AI (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#automation">
+            Automation (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#cmake">
+            CMake (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#civilization">
+            Civilization (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#claude">
+            Claude (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#development">
+            Development (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#game-engine">
+            Game Engine (9)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#gameanalysis">
+            GameAnalysis (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#graphics">
+            Graphics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            HTTP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#http">
+            Http (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#imgui">
+            ImGui (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#makefile">
+            Makefile (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#multiplexing">
+            Multiplexing (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#network">
+            Network (3)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#physics">
+            Physics (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#scripting">
+            Scripting (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#server">
+            Server (2)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#systemdesign">
+            SystemDesign (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#tcp-ip">
+            TCP/IP (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#unity">
+            Unity (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#kqueue">
+            kqueue (1)
+          </a>
+        </li>
+      
+        
+        
+        <li>
+          <a href="/blog/tags#yaml-cpp">
+            yaml-cpp (1)
+          </a>
+        </li>
+      
+    </ul>
+  </div>
+  
+  </div>
+</div>
+
+</div>
+  </main>
+  <footer class="mt-auto py-3 text-center">
+
+  <small class="text-muted mb-2">
+    <i class="fas fa-code"></i> with <i class="fas fa-heart"></i>
+    by <strong>jasongoo827</strong>
+  </small>
+
+  <div class="container-fluid justify-content-center"><a class="social mx-1"  href="mailto:jasongoo@naver.com"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#db4437'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fas fa-envelope fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.github.com/jasongoo827"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#333333'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-github fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.linkedin.com/in/jae-woo-goo-38bba5353"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#007bb5'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-linkedin-in fa-1x"></i>
+    </a><a class="social mx-1"  href="https://www.youtube.com/channel/UC7E6rQHpg4e_c6VHXO0G0XQkoo"
+       style="color: #6c757d"
+       onMouseOver="this.style.color='#ff0000'"
+       onMouseOut="this.style.color='#6c757d'">
+      <i class="fab fa-youtube fa-1x"></i>
+    </a>
+
+</div><small id="attribution">
+    theme <a href="https://github.com/yousinix/portfolYOU">portfolYOU</a>
+  </small>
+
+</footer>
+
+  
+  <!-- GitHub Buttons -->
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+
+<!-- jQuery CDN -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<!-- Popper.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS CDN -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+<!-- wow.js CDN & Activation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wow/1.1.2/wow.js"></script>
+<script> new WOW().init(); </script>
+
+<!-- Initialize all tooltips -->
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+
+</html>
