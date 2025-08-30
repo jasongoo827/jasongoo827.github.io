@@ -1,6 +1,6 @@
 ---
-title: Http Request & Response handling in Webserv + Config
-tags: [Network, Http]
+title: HTTP Request & Response handling in Webserv + Config
+tags: [Network, HTTP]
 style: fill
 color: primary
 description: Webserv(nginx) Project의 구현부에 대한 설명.
